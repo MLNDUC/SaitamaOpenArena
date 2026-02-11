@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FC26 Saitama Open Arena • Bracket</title>
+    <style>
+        :root {
+            --bg: #0b0f16;
+            --panel: #121826;
+            --panel2: #0f1526;
+            --line: #2a3248;
+            --text: #e6ebf2;
+            --muted: #8a93a6;
+            --a: #4da3ff;
+            --b: #00ffc6;
+            --win: #00ffc6;
+            --lose: #ff7a7a;
+        }
+
+        body {
+            font-family: system-ui;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text)
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 16px
+        }
+
+        a {
+            color: #4da3ff;
+            text-decoration: none
+        }
+
+        .pill {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel);
+            border-radius: 14px;
+            padding: 12px
+        }
+
+        .card {
+            background: var(--panel);
+            border-radius: 14px;
+            padding: 14px;
+            margin: 12px 0
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        /* Bracket layout */
+        .bracket {
+            display: grid;
+            grid-template-columns: 1fr 80px 1fr 80px 1fr;
+            gap: 14px;
+            align-items: center;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .col {
+            min-width: 260px
+        }
+
+        .connect {
+            height: 100%;
+            position: relative;
+            min-height: 300px;
+        }
+
+        /* simple connector lines */
+        .connect:before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--line);
+            transform: translateX(-50%);
+            opacity: .8;
+        }
+
+        .hline {
+            position: absolute;
+            left: 50%;
+            width: 50%;
+            height: 2px;
+            background: var(--line);
+            opacity: .8;
+        }
+
+        /* Match box */
+        .box {
+            background: linear-gradient(180deg, #141c2f, var(--panel2));
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+        }
+
+        .box h3 {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: var(--muted);
+            letter-spacing: .4px
+        }
+
+        .teamrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: #0f1526;
+            border: 1px solid #1f2740;
+            margin: 8px 0;
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .avatar {
+            font-size: 20px
+        }
+
+        .pname {
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px
+        }
+
+        .score {
+            font-weight: 900;
+            font-size: 18px;
+            min-width: 44px;
+            text-align: right
+        }
+
+        .badge {
+            font-size: 11px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+
+        .win {
+            border-color: rgba(0, 255, 198, .35);
+            box-shadow: 0 0 0 2px rgba(0, 255, 198, .08) inset
+        }
+
+        .lose {
+            border-color: rgba(255, 122, 122, .35);
+            box-shadow: 0 0 0 2px rgba(255, 122, 122, .08) inset
+        }
+
+        .centerTitle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px
+        }
+
+        .centerTitle .big {
+            font-weight: 900;
+            font-size: 16px
+        }
+
+        .champ {
+            font-size: 20px;
+            font-weight: 1000;
+            background: linear-gradient(135deg, var(--a), var(--b));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Final BO3 */
+        .bo3 {
+            display: grid;
+            gap: 10px
+        }
+
+        .game {
+            background: #0f1526;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px
+        }
+
+        .gameTitle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px
+        }
+
+        .gameTitle b {
+            font-size: 13px
+        }
+
+        .tag {
+            font-size: 11px;
+            color: var(--muted);
+            border: 1px solid var(--line);
+            padding: 2px 8px;
+            border-radius: 999px
+        }
+
+        .gameRow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: #121826
+        }
+
+        .smallScore {
+            font-weight: 900
+        }
+
+        .pending {
+            opacity: .6
+        }
+
+        /* responsive */
+        @media(max-width:900px) {
+            .bracket {
+                grid-template-columns: 1fr;
+                gap: 12px
+            }
+
+            .connect,
+            .hline {
+                display: none
+            }
+
+            .col {
+                min-width: auto
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="pill">
+            <div><b>FC26 Saitama Open Arena</b> <span class="muted">Bracket</span></div>
+            <div><a href="./index.html">Home</a> · <a href="./table.html">Table</a></div>
+        </div>
+
+        <div class="card">
+            <div class="centerTitle">
+                <div>
+                    <div class="big">Tournament Bracket</div>
+                    <div class="muted">Playoff 1 → Playoff 2 → Final (BO3)</div>
+                </div>
+                <div id="champBox" class="muted">Chưa có champion</div>
+            </div>
+
+            <div class="bracket">
+                <!-- Column 1: Playoff 1 -->
+                <div class="col">
+                    <div id="po1Box"></div>
+                </div>
+
+                <!-- Connector 1 -->
+                <div class="connect">
+                    <div class="hline" style="top:38%;"></div>
+                    <div class="hline" style="top:62%;"></div>
+                </div>
+
+                <!-- Column 2: Playoff 2 -->
+                <div class="col">
+                    <div id="po2Box"></div>
+                </div>
+
+                <!-- Connector 2 -->
+                <div class="connect">
+                    <div class="hline" style="top:50%;"></div>
+                </div>
+
+                <!-- Column 3: Final -->
+                <div class="col">
+                    <div id="finalBox"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <b>Final BO3 – Games</b>
+            <div class="muted">Hiển thị rõ Game 1/2/3. Game chưa đá sẽ hiện “—”.</div>
+            <div id="bo3"></div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { load } from "./js/app_state.js";
+        import { avatarEmoji, playerName } from "./js/ui_shared.js";
+        import { recalcStandings, ensurePlayoffsGenerated } from "./js/tournament_engine.js";
+
+        const state = load();
+        if (!state?.tournament) { location.href = "./index.html"; }
+        const t = state.tournament;
+
+        // keep standings updated and ensure playoffs objects exist after group done
+        recalcStandings(t);
+        ensurePlayoffsGenerated(t);
+
+        function pLabel(id) {
+            const p = t.players[id];
+            return `${avatarEmoji(p.avatarKey)} ${p.name}`;
+        }
+        function pNameOnly(id) {
+            const p = t.players[id];
+            return `${avatarEmoji(p.avatarKey)} ${p.name}`;
+        }
+
+        function rowHTML(label, score, isWin, extraBadge = "") {
+            const cls = isWin === null ? "" : (isWin ? "win" : "lose");
+            const s = (score === null || score === undefined) ? "—" : score;
+            return `
+    <div class="teamrow ${cls}">
+      <div class="left">
+        <div class="avatar"></div>
+        <div class="pname">${label} ${extraBadge}</div>
+      </div>
+      <div class="score">${s}</div>
+    </div>
+  `;
+        }
+
+        function matchBoxHTML(title, aId, bId, aScore, bScore, badges = { a: "", b: "" }) {
+            const played = (aScore !== null && bScore !== null);
+            let aWin = null, bWin = null;
+            if (played) {
+                aWin = aScore > bScore;
+                bWin = bScore > aScore;
+                if (aScore === bScore) { aWin = null; bWin = null; } // draw (rare in KO; but keep neutral)
+            }
+            return `
+    <div class="box">
+      <h3>${title}</h3>
+      ${rowHTML(pNameOnly(aId), aScore, aWin, badges.a)}
+      ${rowHTML(pNameOnly(bId), bScore, bWin, badges.b)}
+      <div class="muted" style="margin-top:8px">
+        ${played ? "Result saved" : "Waiting for score"}
+      </div>
+    </div>
+  `;
+        }
+
+        // ===== Champion header =====
+        const champBox = document.getElementById("champBox");
+        if (t.championId !== null) {
+            champBox.innerHTML = `<span class="champ">🏆 ${playerName(t, t.championId)}</span>`;
+        } else {
+            champBox.textContent = "Chưa có champion";
+        }
+
+        // ===== Playoff 1 box =====
+        const po1Root = document.getElementById("po1Box");
+        if (!t.playoff1) {
+            po1Root.innerHTML = `<div class="muted">Playoff 1 sẽ xuất hiện sau khi hoàn thành vòng bảng.</div>`;
+        } else {
+            const aId = t.playoff1.aId;
+            const bId = t.playoff1.bId;
+            const aScore = t.playoff1.score?.a ?? null;
+            const bScore = t.playoff1.score?.b ?? null;
+
+            // badges: seed after group
+            const s = t.group.standings;
+            const seed = {};
+            s.forEach((p, i) => seed[p.id] = i + 1);
+
+            po1Root.innerHTML = matchBoxHTML(
+                "PLAYOFF 1 (3rd vs 4th)",
+                aId, bId,
+                aScore, bScore,
+                { a: `<span class="badge">#${seed[aId]}</span>`, b: `<span class="badge">#${seed[bId]}</span>` }
+            );
+        }
+
+        // ===== Playoff 2 box =====
+        const po2Root = document.getElementById("po2Box");
+        if (!t.playoff2) {
+            po2Root.innerHTML = `<div class="muted">Playoff 2 sẽ xuất hiện sau Playoff 1.</div>`;
+        } else {
+            const s = t.group.standings;
+            const seed = {};
+            s.forEach((p, i) => seed[p.id] = i + 1);
+
+            // challenger (winner of po1) becomes aId; seed2 is bId
+            const aId = t.playoff2.aId;
+            const bId = t.playoff2.bId ?? t.playoff2.seed2Id;
+
+            if (aId === null || bId === null) {
+                po2Root.innerHTML = `
+      <div class="box">
+        <h3>PLAYOFF 2 (Winner vs 2nd)</h3>
+        <div class="muted">Đợi kết quả Playoff 1 để xác định đối thủ đá với #2.</div>
+      </div>
+    `;
+            } else {
+                const aScore = t.playoff2.score?.a ?? null;
+                const bScore = t.playoff2.score?.b ?? null;
+
+                po2Root.innerHTML = matchBoxHTML(
+                    "PLAYOFF 2 (Winner vs 2nd)",
+                    aId, bId,
+                    aScore, bScore,
+                    { a: `<span class="badge">Winner PO1</span>`, b: `<span class="badge">#${seed[bId]}</span>` }
+                );
+            }
+        }
+
+        // ===== Final box =====
+        const finalRoot = document.getElementById("finalBox");
+        {
+            const s = t.group.standings;
+            const seed = {};
+            s.forEach((p, i) => seed[p.id] = i + 1);
+
+            const p1Id = t.final?.p1Id ?? null;
+            const p2Id = t.final?.p2Id ?? null;
+
+            if (p1Id === null) {
+                finalRoot.innerHTML = `<div class="muted">Final sẽ xuất hiện sau vòng bảng.</div>`;
+            } else if (p2Id === null) {
+                finalRoot.innerHTML = `
+      <div class="box">
+        <h3>FINAL (BO3)</h3>
+        <div class="teamrow">
+          <div class="left"><div class="pname">${pNameOnly(p1Id)} <span class="badge">#${seed[p1Id]}</span></div></div>
+          <div class="score">—</div>
+        </div>
+        <div class="teamrow pending">
+          <div class="left"><div class="pname">Challenger (Winner PO2)</div></div>
+          <div class="score">—</div>
+        </div>
+        <div class="muted" style="margin-top:8px">Đợi kết quả Playoff 2 để xác định đối thủ chung kết.</div>
+      </div>
+    `;
+            } else {
+                // winner of BO3 derived from t.final.winnerId
+                const winnerId = t.final.winnerId ?? null;
+                const aWin = winnerId ? (winnerId === p1Id) : null;
+                const bWin = winnerId ? (winnerId === p2Id) : null;
+
+                finalRoot.innerHTML = `
+      <div class="box">
+        <h3>FINAL (BO3)</h3>
+        <div class="teamrow ${aWin === null ? "" : (aWin ? "win" : "lose")}">
+          <div class="left"><div class="pname">${pNameOnly(p1Id)} <span class="badge">#${seed[p1Id]}</span></div></div>
+          <div class="score">${winnerId ? (aWin ? "W" : "") : "—"}</div>
+        </div>
+        <div class="teamrow ${bWin === null ? "" : (bWin ? "win" : "lose")}">
+          <div class="left"><div class="pname">${pNameOnly(p2Id)} <span class="badge">Challenger</span></div></div>
+          <div class="score">${winnerId ? (bWin ? "W" : "") : "—"}</div>
+        </div>
+        <div class="muted" style="margin-top:8px">
+          ${winnerId ? `Winner decided: ${playerName(t, winnerId)}` : "Playing BO3..."}
+        </div>
+      </div>
+    `;
+            }
+        }
+
+        // ===== Final BO3 games (Game 1/2/3) =====
+        const bo3 = document.getElementById("bo3");
+        {
+            const p1Id = t.final?.p1Id ?? null;
+            const p2Id = t.final?.p2Id ?? null;
+
+            const games = t.final?.matches ?? [];
+            const g1 = games[0] ?? null;
+            const g2 = games[1] ?? null;
+            const g3 = games[2] ?? null;
+
+            if (p1Id === null) {
+                bo3.innerHTML = `<div class="muted">Chưa có Final.</div>`;
+            } else if (p2Id === null) {
+                bo3.innerHTML = `<div class="muted">Đợi Playoff 2 xong để vào Final BO3.</div>`;
+            } else {
+                const blocks = [
+                    { n: 1, g: g1 },
+                    { n: 2, g: g2 },
+                    { n: 3, g: g3 },
+                ].map(({ n, g }) => {
+                    const a = g ? g.a : null;
+                    const b = g ? g.b : null;
+                    const done = g !== null;
+                    const tag = done ? "Played" : "Pending";
+
+                    return `
+        <div class="game ${done ? "" : "pending"}">
+          <div class="gameTitle">
+            <b>Game ${n}</b>
+            <span class="tag">${tag}</span>
+          </div>
+          <div class="gameRow">
+            <div>${pLabel(p1Id)}</div>
+            <div class="smallScore">${a === null ? "—" : a}</div>
+          </div>
+          <div class="gameRow" style="margin-top:6px">
+            <div>${pLabel(p2Id)}</div>
+            <div class="smallScore">${b === null ? "—" : b}</div>
+          </div>
+        </div>
+      `;
+                }).join("");
+
+                bo3.innerHTML = `<div class="bo3">${blocks}</div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>

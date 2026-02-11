@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FC26 Saitama Open Arena</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            margin: 0;
+            background: #0b0f16;
+            color: #e6ebf2
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 16px
+        }
+
+        .top {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        a {
+            color: #4da3ff;
+            text-decoration: none
+        }
+
+        .card {
+            background: #121826;
+            border-radius: 14px;
+            padding: 14px;
+            margin: 12px 0
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .col {
+            flex: 1;
+            min-width: 260px
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #2a3248;
+            background: #0f1526;
+            color: #e6ebf2
+        }
+
+        button {
+            border: none;
+            background: linear-gradient(135deg, #4da3ff, #00ffc6);
+            color: #001019;
+            font-weight: 800;
+            cursor: pointer
+        }
+
+        button:disabled {
+            background: #2a3248;
+            color: #8a93a6;
+            cursor: not-allowed
+        }
+
+        .pill {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            background: #0f1526;
+            border: 1px solid #2a3248;
+            border-radius: 999px;
+            padding: 8px 10px
+        }
+
+        .team {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        .team img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            background: #0f1526;
+            border-radius: 12px;
+            padding: 6px;
+            border: 1px solid #2a3248
+        }
+
+        .big {
+            font-size: 18px;
+            font-weight: 800
+        }
+
+        .muted {
+            color: #8a93a6;
+            font-size: 13px
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="top">
+            <div class="pill"><b>FC26 Saitama Open Arena</b><span class="muted">Home</span></div>
+            <div class="pill">
+                <a href="./table.html">Table</a> · <a href="./bracket.html">Bracket</a>
+            </div>
+        </div>
+
+        <div class="card" id="setupCard">
+            <div class="big">1) Setup 4 người chơi (preset avatar)</div>
+            <div class="muted">Chỉ làm 1 lần mỗi giải. Có thể “Reset Tournament”.</div>
+            <div class="row" id="setupInputs"></div>
+            <div class="row">
+                <div class="col"><button id="btnCreate">Create New Tournament</button></div>
+                <div class="col"><button id="btnReset" style="background:linear-gradient(135deg,#ff7a7a,#ffb86b)">Reset
+                        Tournament</button></div>
+            </div>
+        </div>
+
+        <div class="card" id="matchCard" style="display:none">
+            <div class="big">2) Current Match</div>
+            <div class="muted" id="stageLabel">-</div>
+
+            <div class="row">
+                <div class="col">
+                    <label class="muted">Player A (đúng người của trận)</label>
+                    <select id="selA"></select>
+                </div>
+                <div class="col">
+                    <label class="muted">Player B (đúng người của trận)</label>
+                    <select id="selB"></select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <button id="btnRandom">Random Teams (tick + easing)</button>
+                </div>
+                <div class="col">
+                    <button id="btnSaveMatch" disabled>Save Score & Advance</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col team">
+                    <img id="logoA" alt="">
+                    <div>
+                        <div class="big" id="teamA">—</div>
+                        <div class="muted" id="playerA">—</div>
+                    </div>
+                </div>
+                <div class="col team">
+                    <img id="logoB" alt="">
+                    <div>
+                        <div class="big" id="teamB">—</div>
+                        <div class="muted" id="playerB">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid2">
+                <div>
+                    <label class="muted">Score A</label>
+                    <input id="scoreA" type="number" min="0" placeholder="0">
+                </div>
+                <div>
+                    <label class="muted">Score B</label>
+                    <input id="scoreB" type="number" min="0" placeholder="0">
+                </div>
+            </div>
+
+            <div class="muted" style="margin-top:10px">
+                Tip: Home chỉ tạo team + nhập score cho “trận hiện tại”. Sửa toàn bộ lịch + bảng ở trang Table.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { load, save, clearAll } from "./js/app_state.js";
+        import { AVATARS, avatarEmoji, playerName } from "./js/ui_shared.js";
+        import {
+            createNewTournament, currentStage, setGroupMatchTeams, setGroupMatchResult,
+            ensurePlayoffsGenerated, setPlayoff1Result, setPlayoff2Result, addFinalGame,
+            logMatch
+        } from "./js/tournament_engine.js";
+
+        // ====== TEAMS LOCAL (21) ======
+        const TEAMS = [
+            { id: "real-madrid", name: "Real Madrid", u: "logos/real-madrid.png" },
+            { id: "barcelona", name: "FC Barcelona", u: "logos/barcelona.png" },
+            { id: "psg", name: "Paris Saint-Germain", u: "logos/psg.png" },
+            { id: "liverpool", name: "Liverpool", u: "logos/liverpool.png" },
+            { id: "man-city", name: "Manchester City", u: "logos/man-city.png" },
+            { id: "arsenal", name: "Arsenal", u: "logos/arsenal.png" },
+            { id: "bayern", name: "Bayern Munich", u: "logos/bayern.png" },
+            { id: "atletico", name: "Atlético Madrid", u: "logos/atletico.png" },
+            { id: "newcastle", name: "Newcastle United", u: "logos/newcastle.png" },
+            { id: "napoli", name: "Napoli", u: "logos/napoli.png" },
+            { id: "tottenham", name: "Tottenham Hotspur", u: "logos/tottenham.png" },
+            { id: "chelsea", name: "Chelsea", u: "logos/chelsea.png" },
+            { id: "man-united", name: "Manchester United", u: "logos/man-united.png" },
+            { id: "leverkusen", name: "Bayer Leverkusen", u: "logos/leverkusen.png" },
+            { id: "spain", name: "Spain", u: "logos/spain.png" },
+            { id: "france", name: "France", u: "logos/france.png" },
+            { id: "argentina", name: "Argentina", u: "logos/argentina.png" },
+            { id: "england", name: "England", u: "logos/england.png" },
+            { id: "portugal", name: "Portugal", u: "logos/portugal.png" },
+            { id: "germany", name: "Germany", u: "logos/germany.png" },
+            { id: "inter", name: "Inter", u: "logos/inter.png" },
+        ];
+
+        const tickSound = new Audio("sounds/tick.mp3");
+        tickSound.volume = 0.7;
+        tickSound.preload = "auto";
+
+        const dongSound = new Audio("sounds/dong.mp3");
+        dongSound.volume = 0.85;
+        dongSound.preload = "auto";
+
+        function playTick() { try { tickSound.currentTime = 0; tickSound.play(); } catch (e) { } }
+        function playDong() { try { dongSound.currentTime = 0; dongSound.play(); } catch (e) { } }
+
+        let state = load(); // { tournament }
+        let tournament = state?.tournament ?? null;
+
+        const setupCard = document.getElementById("setupCard");
+        const matchCard = document.getElementById("matchCard");
+        const setupInputs = document.getElementById("setupInputs");
+
+        const selA = document.getElementById("selA");
+        const selB = document.getElementById("selB");
+        const stageLabel = document.getElementById("stageLabel");
+
+        const btnCreate = document.getElementById("btnCreate");
+        const btnReset = document.getElementById("btnReset");
+        const btnRandom = document.getElementById("btnRandom");
+        const btnSaveMatch = document.getElementById("btnSaveMatch");
+
+        const logoA = document.getElementById("logoA");
+        const logoB = document.getElementById("logoB");
+        const teamA = document.getElementById("teamA");
+        const teamB = document.getElementById("teamB");
+        const playerA = document.getElementById("playerA");
+        const playerB = document.getElementById("playerB");
+        const scoreA = document.getElementById("scoreA");
+        const scoreB = document.getElementById("scoreB");
+
+        function renderSetupInputs() {
+            setupInputs.innerHTML = "";
+            for (let i = 0; i < 4; i++) {
+                const col = document.createElement("div");
+                col.className = "col";
+                col.innerHTML = `
+      <label class="muted">Player ${i + 1} Name</label>
+      <input id="pname_${i}" placeholder="Player ${i + 1}" value="">
+      <label class="muted" style="margin-top:8px;display:block">Avatar</label>
+      <select id="pava_${i}"></select>
+    `;
+                setupInputs.appendChild(col);
+
+                const sel = col.querySelector(`#pava_${i}`);
+                AVATARS.forEach(a => {
+                    const opt = document.createElement("option");
+                    opt.value = a.key;
+                    opt.textContent = `${a.label}`;
+                    sel.appendChild(opt);
+                });
+            }
+        }
+
+        function saveState() {
+            save({ tournament });
+        }
+
+        function showTournamentUI() {
+            setupCard.style.display = "none";
+            matchCard.style.display = "block";
+            renderCurrentMatch();
+        }
+
+        function showSetupUI() {
+            setupCard.style.display = "block";
+            matchCard.style.display = "none";
+        }
+
+        function teamById(id) { return TEAMS.find(t => t.id === id); }
+
+        function setTeamUI(side, tId, pId) {
+            const t = teamById(tId);
+            if (side === "A") {
+                logoA.src = t?.u || "";
+                teamA.textContent = t?.name || "—";
+                playerA.textContent = `${avatarEmoji(tournament.players[pId].avatarKey)} ${tournament.players[pId].name}`;
+            } else {
+                logoB.src = t?.u || "";
+                teamB.textContent = t?.name || "—";
+                playerB.textContent = `${avatarEmoji(tournament.players[pId].avatarKey)} ${tournament.players[pId].name}`;
+            }
+        }
+
+        function fillPlayerSelect(select, allowedIds) {
+            select.innerHTML = "";
+            allowedIds.forEach(id => {
+                const p = tournament.players[id];
+                const opt = document.createElement("option");
+                opt.value = String(id);
+                opt.textContent = `${avatarEmoji(p.avatarKey)} ${p.name}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderCurrentMatch() {
+            const cur = currentStage(tournament);
+            stageLabel.textContent = cur.label;
+
+            if (cur.stage === "done") {
+                selA.innerHTML = ""; selB.innerHTML = "";
+                btnRandom.disabled = true;
+                btnSaveMatch.disabled = true;
+                teamA.textContent = "Tournament Completed";
+                teamB.textContent = "";
+                playerA.textContent = tournament.championId !== null
+                    ? `🏆 Champion: ${playerName(tournament, tournament.championId)}`
+                    : "";
+                logoA.src = ""; logoB.src = "";
+                return;
+            }
+
+            // only allow selecting the 2 players in this match
+            fillPlayerSelect(selA, [cur.aId]);
+            fillPlayerSelect(selB, [cur.bId]);
+
+            // reset UI
+            scoreA.value = "";
+            scoreB.value = "";
+            btnSaveMatch.disabled = true;
+
+            // show if teams already assigned
+            const assigned = getAssignedTeams(cur);
+            if (assigned) {
+                setTeamUI("A", assigned.aTeam, cur.aId);
+                setTeamUI("B", assigned.bTeam, cur.bId);
+            } else {
+                logoA.src = ""; logoB.src = "";
+                teamA.textContent = "—"; teamB.textContent = "—";
+                playerA.textContent = `${avatarEmoji(tournament.players[cur.aId].avatarKey)} ${tournament.players[cur.aId].name}`;
+                playerB.textContent = `${avatarEmoji(tournament.players[cur.bId].avatarKey)} ${tournament.players[cur.bId].name}`;
+            }
+
+            btnRandom.disabled = false;
+        }
+
+        function getAssignedTeams(cur) {
+            if (cur.stage === "group") {
+                const m = tournament.group.matches[cur.matchIndex];
+                if (m.teams.a && m.teams.b) return { aTeam: m.teams.a, bTeam: m.teams.b };
+            }
+            if (cur.stage === "playoff1") {
+                const p = tournament.playoff1;
+                if (p.teams.a && p.teams.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
+            }
+            if (cur.stage === "playoff2") {
+                const p = tournament.playoff2;
+                if (p.teams.a && p.teams.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
+            }
+            if (cur.stage === "final") {
+                // teams for final are picked per game; keep it simple: random each game too
+                // we store in log only; UI uses current displayed
+                return null;
+            }
+            return null;
+        }
+
+        function randomTwoDifferentTeams() {
+            const a = TEAMS[(Math.random() * TEAMS.length) | 0];
+            let b = TEAMS[(Math.random() * TEAMS.length) | 0];
+            while (b.id === a.id) b = TEAMS[(Math.random() * TEAMS.length) | 0];
+            return [a, b];
+        }
+
+        // EASING SPIN + tick + suspense
+        async function spinWithSound(onFrame, onDone) {
+            // unlock audio (iOS)
+            await Promise.allSettled([
+                tickSound.play().then(() => tickSound.pause()),
+                dongSound.play().then(() => dongSound.pause())
+            ]).catch(() => { });
+
+            const totalTime = 3300;
+            const startDelay = 45;
+            const endDelay = 700;
+            const suspenseHoldMs = 600;
+
+            const startTime = performance.now();
+
+            function loop(now) {
+                const p = Math.min((now - startTime) / totalTime, 1);
+                const ease = p * p * p; // gắt
+                const delay = startDelay + (endDelay - startDelay) * ease;
+
+                onFrame();
+                playTick();
+
+                if (p < 1) {
+                    setTimeout(() => requestAnimationFrame(loop), delay);
+                } else {
+                    setTimeout(() => {
+                        onDone();
+                        playDong();
+                    }, suspenseHoldMs);
+                }
+            }
+            requestAnimationFrame(loop);
+        }
+
+        btnRandom.addEventListener("click", async () => {
+            const cur = currentStage(tournament);
+            if (cur.stage === "done") return;
+
+            let lastA = null, lastB = null;
+
+            btnRandom.disabled = true;
+            btnSaveMatch.disabled = true;
+
+            await spinWithSound(
+                () => {
+                    const [ta, tb] = randomTwoDifferentTeams();
+                    lastA = ta; lastB = tb;
+                    setTeamUI("A", ta.id, cur.aId);
+                    setTeamUI("B", tb.id, cur.bId);
+                },
+                () => {
+                    // persist teams for group/playoffs; for final we just keep in log per game
+                    if (cur.stage === "group") {
+                        setGroupMatchTeams(tournament, cur.matchIndex, lastA.id, lastB.id);
+                    } else if (cur.stage === "playoff1") {
+                        tournament.playoff1.teams = { a: lastA.id, b: lastB.id };
+                    } else if (cur.stage === "playoff2") {
+                        tournament.playoff2.teams = { a: lastA.id, b: lastB.id };
+                    } else if (cur.stage === "final") {
+                        // store later with score
+                        // we just keep displayed; no need to save teams yet
+                    }
+
+                    saveState();
+                    btnSaveMatch.disabled = false;
+                    btnRandom.disabled = false;
+                }
+            );
+        });
+
+        btnSaveMatch.addEventListener("click", () => {
+            const cur = currentStage(tournament);
+            const aS = Number(scoreA.value);
+            const bS = Number(scoreB.value);
+
+            if (!Number.isFinite(aS) || !Number.isFinite(bS) || aS < 0 || bS < 0) return alert("Nhập tỉ số hợp lệ (>=0).");
+
+            // Save based on stage
+            if (cur.stage === "group") {
+                setGroupMatchResult(tournament, cur.matchIndex, aS, bS);
+                const m = tournament.group.matches[cur.matchIndex];
+                logMatch(tournament, { stage: "group", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: m.teams.a, bTeam: m.teams.b, aScore: aS, bScore: bS });
+                ensurePlayoffsGenerated(tournament);
+            }
+
+            if (cur.stage === "playoff1") {
+                const p = tournament.playoff1;
+                p.score = { a: aS, b: bS };
+                logMatch(tournament, { stage: "playoff1", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: p.teams.a, bTeam: p.teams.b, aScore: aS, bScore: bS });
+                setPlayoff1Result(tournament, aS, bS);
+            }
+
+            if (cur.stage === "playoff2") {
+                const p = tournament.playoff2;
+                p.score = { a: aS, b: bS };
+                logMatch(tournament, { stage: "playoff2", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: p.teams.a, bTeam: p.teams.b, aScore: aS, bScore: bS });
+                setPlayoff2Result(tournament, aS, bS);
+            }
+
+            if (cur.stage === "final") {
+                // teams shown currently in UI (from last random spin)
+                const aTeamId = TEAMS.find(t => t.name === teamA.textContent)?.id ?? null;
+                const bTeamId = TEAMS.find(t => t.name === teamB.textContent)?.id ?? null;
+                addFinalGame(tournament, aS, bS);
+                logMatch(tournament, { stage: "final", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: aTeamId, bTeam: bTeamId, aScore: aS, bScore: bS });
+            }
+
+            saveState();
+            renderCurrentMatch();
+        });
+
+        // Setup
+        renderSetupInputs();
+
+        btnCreate.addEventListener("click", () => {
+            const players = [];
+            for (let i = 0; i < 4; i++) {
+                const name = document.getElementById(`pname_${i}`).value.trim() || `Player ${i + 1}`;
+                const avatarKey = document.getElementById(`pava_${i}`).value;
+                players.push({ name, avatarKey });
+            }
+            tournament = createNewTournament(players);
+            saveState();
+            showTournamentUI();
+        });
+
+        btnReset.addEventListener("click", () => {
+            if (!confirm("Reset tournament? (xóa toàn bộ dữ liệu giải)")) return;
+            clearAll();
+            tournament = null;
+            showSetupUI();
+        });
+
+        // boot
+        if (tournament) showTournamentUI();
+        else showSetupUI();
+    </script>
+</body>
+
+</html>

@@ -5,6 +5,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>FC26 Saitama Open Arena</title>
+    <meta name="apple-mobile-web-app-title" content="FC26 Saitama Open Arena">
+
     <style>
         body {
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
@@ -65,7 +67,7 @@
             border: none;
             background: linear-gradient(135deg, #4da3ff, #00ffc6);
             color: #001019;
-            font-weight: 800;
+            font-weight: 900;
             cursor: pointer
         }
 
@@ -103,7 +105,7 @@
 
         .big {
             font-size: 18px;
-            font-weight: 800
+            font-weight: 1000
         }
 
         .muted {
@@ -115,6 +117,20 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px
+        }
+
+        .divider {
+            height: 1px;
+            background: #2a3248;
+            margin: 12px 0
+        }
+
+        .hint {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 12px;
+            background: #0f1526;
+            border: 1px dashed #2a3248
         }
     </style>
 </head>
@@ -143,6 +159,15 @@
             <div class="big">2) Current Match</div>
             <div class="muted" id="stageLabel">-</div>
 
+            <div class="hint">
+                <div class="muted">
+                    Luật “đen tự chịu”: mỗi người tự bấm random team cho mình. Khi cả 2 đã random xong mới được lưu tỉ
+                    số.
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
             <div class="row">
                 <div class="col">
                     <label class="muted">Player A (đúng người của trận)</label>
@@ -156,8 +181,14 @@
 
             <div class="row">
                 <div class="col">
-                    <button id="btnRandom">Random Teams (tick + easing)</button>
+                    <button id="btnRandomA">Player A Random Team</button>
                 </div>
+                <div class="col">
+                    <button id="btnRandomB">Player B Random Team</button>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col">
                     <button id="btnSaveMatch" disabled>Save Score & Advance</button>
                 </div>
@@ -192,7 +223,8 @@
             </div>
 
             <div class="muted" style="margin-top:10px">
-                Tip: Home chỉ tạo team + nhập score cho “trận hiện tại”. Sửa toàn bộ lịch + bảng ở trang Table.
+                Tip: Trang Home chỉ xử lý “trận hiện tại” theo tiến trình giải. Sửa toàn bộ lịch + standings ở trang
+                Table.
             </div>
         </div>
     </div>
@@ -255,7 +287,8 @@
 
         const btnCreate = document.getElementById("btnCreate");
         const btnReset = document.getElementById("btnReset");
-        const btnRandom = document.getElementById("btnRandom");
+        const btnRandomA = document.getElementById("btnRandomA");
+        const btnRandomB = document.getElementById("btnRandomB");
         const btnSaveMatch = document.getElementById("btnSaveMatch");
 
         const logoA = document.getElementById("logoA");
@@ -266,6 +299,9 @@
         const playerB = document.getElementById("playerB");
         const scoreA = document.getElementById("scoreA");
         const scoreB = document.getElementById("scoreB");
+
+        // Current match picked teams (per match/game)
+        let currentPicked = { aTeam: null, bTeam: null };
 
         function renderSetupInputs() {
             setupInputs.innerHTML = "";
@@ -331,47 +367,6 @@
             });
         }
 
-        function renderCurrentMatch() {
-            const cur = currentStage(tournament);
-            stageLabel.textContent = cur.label;
-
-            if (cur.stage === "done") {
-                selA.innerHTML = ""; selB.innerHTML = "";
-                btnRandom.disabled = true;
-                btnSaveMatch.disabled = true;
-                teamA.textContent = "Tournament Completed";
-                teamB.textContent = "";
-                playerA.textContent = tournament.championId !== null
-                    ? `🏆 Champion: ${playerName(tournament, tournament.championId)}`
-                    : "";
-                logoA.src = ""; logoB.src = "";
-                return;
-            }
-
-            // only allow selecting the 2 players in this match
-            fillPlayerSelect(selA, [cur.aId]);
-            fillPlayerSelect(selB, [cur.bId]);
-
-            // reset UI
-            scoreA.value = "";
-            scoreB.value = "";
-            btnSaveMatch.disabled = true;
-
-            // show if teams already assigned
-            const assigned = getAssignedTeams(cur);
-            if (assigned) {
-                setTeamUI("A", assigned.aTeam, cur.aId);
-                setTeamUI("B", assigned.bTeam, cur.bId);
-            } else {
-                logoA.src = ""; logoB.src = "";
-                teamA.textContent = "—"; teamB.textContent = "—";
-                playerA.textContent = `${avatarEmoji(tournament.players[cur.aId].avatarKey)} ${tournament.players[cur.aId].name}`;
-                playerB.textContent = `${avatarEmoji(tournament.players[cur.bId].avatarKey)} ${tournament.players[cur.bId].name}`;
-            }
-
-            btnRandom.disabled = false;
-        }
-
         function getAssignedTeams(cur) {
             if (cur.stage === "group") {
                 const m = tournament.group.matches[cur.matchIndex];
@@ -379,28 +374,25 @@
             }
             if (cur.stage === "playoff1") {
                 const p = tournament.playoff1;
-                if (p.teams.a && p.teams.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
+                if (p?.teams?.a && p?.teams?.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
             }
             if (cur.stage === "playoff2") {
                 const p = tournament.playoff2;
-                if (p.teams.a && p.teams.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
+                if (p?.teams?.a && p?.teams?.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
             }
-            if (cur.stage === "final") {
-                // teams for final are picked per game; keep it simple: random each game too
-                // we store in log only; UI uses current displayed
-                return null;
-            }
+            // final teams are per-game, decided in Home each game; not persisted in object (logged only)
             return null;
         }
 
-        function randomTwoDifferentTeams() {
-            const a = TEAMS[(Math.random() * TEAMS.length) | 0];
-            let b = TEAMS[(Math.random() * TEAMS.length) | 0];
-            while (b.id === a.id) b = TEAMS[(Math.random() * TEAMS.length) | 0];
-            return [a, b];
+        function randomOneTeam(excludeTeamId = null) {
+            let t = TEAMS[(Math.random() * TEAMS.length) | 0];
+            while (excludeTeamId && t.id === excludeTeamId) {
+                t = TEAMS[(Math.random() * TEAMS.length) | 0];
+            }
+            return t;
         }
 
-        // EASING SPIN + tick + suspense
+        // EASING SPIN + tick + suspense + dong
         async function spinWithSound(onFrame, onDone) {
             // unlock audio (iOS)
             await Promise.allSettled([
@@ -410,8 +402,8 @@
 
             const totalTime = 3300;
             const startDelay = 45;
-            const endDelay = 700;
-            const suspenseHoldMs = 600;
+            const endDelay = 700;      // chậm cuối
+            const suspenseHoldMs = 600; // hồi hộp
 
             const startTime = performance.now();
 
@@ -435,77 +427,209 @@
             requestAnimationFrame(loop);
         }
 
-        btnRandom.addEventListener("click", async () => {
+        function maybeEnableSave() {
+            if (currentPicked.aTeam && currentPicked.bTeam) {
+                btnSaveMatch.disabled = false;
+            }
+        }
+
+        function renderCurrentMatch() {
+            const cur = currentStage(tournament);
+            stageLabel.textContent = cur.label;
+
+            if (cur.stage === "done") {
+                selA.innerHTML = ""; selB.innerHTML = "";
+                btnRandomA.disabled = true;
+                btnRandomB.disabled = true;
+                btnSaveMatch.disabled = true;
+                teamA.textContent = "Tournament Completed";
+                teamB.textContent = "";
+                playerA.textContent = tournament.championId !== null
+                    ? `🏆 Champion: ${playerName(tournament, tournament.championId)}`
+                    : "";
+                playerB.textContent = "";
+                logoA.src = ""; logoB.src = "";
+                scoreA.value = ""; scoreB.value = "";
+                return;
+            }
+
+            // lock selects to correct players only
+            fillPlayerSelect(selA, [cur.aId]);
+            fillPlayerSelect(selB, [cur.bId]);
+
+            // reset input + picked
+            scoreA.value = "";
+            scoreB.value = "";
+            btnSaveMatch.disabled = true;
+
+            currentPicked = { aTeam: null, bTeam: null };
+            btnRandomA.disabled = false;
+            btnRandomB.disabled = false;
+
+            // show already assigned teams (group/playoffs)
+            const assigned = getAssignedTeams(cur);
+            if (assigned) {
+                currentPicked.aTeam = assigned.aTeam;
+                currentPicked.bTeam = assigned.bTeam;
+                setTeamUI("A", assigned.aTeam, cur.aId);
+                setTeamUI("B", assigned.bTeam, cur.bId);
+
+                btnRandomA.disabled = true;
+                btnRandomB.disabled = true;
+                btnSaveMatch.disabled = false;
+                return;
+            }
+
+            // blank state
+            logoA.src = ""; logoB.src = "";
+            teamA.textContent = "—"; teamB.textContent = "—";
+            playerA.textContent = `${avatarEmoji(tournament.players[cur.aId].avatarKey)} ${tournament.players[cur.aId].name}`;
+            playerB.textContent = `${avatarEmoji(tournament.players[cur.bId].avatarKey)} ${tournament.players[cur.bId].name}`;
+        }
+
+        btnRandomA.addEventListener("click", async () => {
             const cur = currentStage(tournament);
             if (cur.stage === "done") return;
 
-            let lastA = null, lastB = null;
-
-            btnRandom.disabled = true;
+            btnRandomA.disabled = true;
             btnSaveMatch.disabled = true;
+
+            let lastA = null;
 
             await spinWithSound(
                 () => {
-                    const [ta, tb] = randomTwoDifferentTeams();
-                    lastA = ta; lastB = tb;
+                    const ta = randomOneTeam(currentPicked.bTeam);
+                    lastA = ta;
                     setTeamUI("A", ta.id, cur.aId);
-                    setTeamUI("B", tb.id, cur.bId);
                 },
                 () => {
-                    // persist teams for group/playoffs; for final we just keep in log per game
+                    currentPicked.aTeam = lastA.id;
+
+                    // persist team for group/playoffs (final teams are per game, stored via log on save)
                     if (cur.stage === "group") {
-                        setGroupMatchTeams(tournament, cur.matchIndex, lastA.id, lastB.id);
+                        const m = tournament.group.matches[cur.matchIndex];
+                        m.teams.a = currentPicked.aTeam;
                     } else if (cur.stage === "playoff1") {
-                        tournament.playoff1.teams = { a: lastA.id, b: lastB.id };
+                        tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
+                        tournament.playoff1.teams.a = currentPicked.aTeam;
                     } else if (cur.stage === "playoff2") {
-                        tournament.playoff2.teams = { a: lastA.id, b: lastB.id };
-                    } else if (cur.stage === "final") {
-                        // store later with score
-                        // we just keep displayed; no need to save teams yet
+                        tournament.playoff2.teams = tournament.playoff2.teams || { a: null, b: null };
+                        tournament.playoff2.teams.a = currentPicked.aTeam;
                     }
 
                     saveState();
-                    btnSaveMatch.disabled = false;
-                    btnRandom.disabled = false;
+                    maybeEnableSave();
+                }
+            );
+        });
+
+        btnRandomB.addEventListener("click", async () => {
+            const cur = currentStage(tournament);
+            if (cur.stage === "done") return;
+
+            btnRandomB.disabled = true;
+            btnSaveMatch.disabled = true;
+
+            let lastB = null;
+
+            await spinWithSound(
+                () => {
+                    const tb = randomOneTeam(currentPicked.aTeam);
+                    lastB = tb;
+                    setTeamUI("B", tb.id, cur.bId);
+                },
+                () => {
+                    currentPicked.bTeam = lastB.id;
+
+                    if (cur.stage === "group") {
+                        const m = tournament.group.matches[cur.matchIndex];
+                        m.teams.b = currentPicked.bTeam;
+                    } else if (cur.stage === "playoff1") {
+                        tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
+                        tournament.playoff1.teams.b = currentPicked.bTeam;
+                    } else if (cur.stage === "playoff2") {
+                        tournament.playoff2.teams = tournament.playoff2.teams || { a: null, b: null };
+                        tournament.playoff2.teams.b = currentPicked.bTeam;
+                    }
+
+                    saveState();
+                    maybeEnableSave();
                 }
             );
         });
 
         btnSaveMatch.addEventListener("click", () => {
             const cur = currentStage(tournament);
+
+            if (!currentPicked.aTeam || !currentPicked.bTeam) {
+                alert("Cả 2 người phải random team xong mới được lưu tỉ số.");
+                return;
+            }
+
             const aS = Number(scoreA.value);
             const bS = Number(scoreB.value);
+            if (!Number.isFinite(aS) || !Number.isFinite(bS) || aS < 0 || bS < 0) {
+                alert("Nhập tỉ số hợp lệ (>=0).");
+                return;
+            }
 
-            if (!Number.isFinite(aS) || !Number.isFinite(bS) || aS < 0 || bS < 0) return alert("Nhập tỉ số hợp lệ (>=0).");
-
-            // Save based on stage
+            // Save by stage
             if (cur.stage === "group") {
+                setGroupMatchTeams(tournament, cur.matchIndex, currentPicked.aTeam, currentPicked.bTeam);
                 setGroupMatchResult(tournament, cur.matchIndex, aS, bS);
-                const m = tournament.group.matches[cur.matchIndex];
-                logMatch(tournament, { stage: "group", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: m.teams.a, bTeam: m.teams.b, aScore: aS, bScore: bS });
+
+                logMatch(tournament, {
+                    stage: "group", label: cur.label,
+                    aId: cur.aId, bId: cur.bId,
+                    aTeam: currentPicked.aTeam, bTeam: currentPicked.bTeam,
+                    aScore: aS, bScore: bS
+                });
+
                 ensurePlayoffsGenerated(tournament);
             }
 
             if (cur.stage === "playoff1") {
-                const p = tournament.playoff1;
-                p.score = { a: aS, b: bS };
-                logMatch(tournament, { stage: "playoff1", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: p.teams.a, bTeam: p.teams.b, aScore: aS, bScore: bS });
+                tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
+                tournament.playoff1.teams.a = currentPicked.aTeam;
+                tournament.playoff1.teams.b = currentPicked.bTeam;
+                tournament.playoff1.score = { a: aS, b: bS };
+
+                logMatch(tournament, {
+                    stage: "playoff1", label: cur.label,
+                    aId: cur.aId, bId: cur.bId,
+                    aTeam: currentPicked.aTeam, bTeam: currentPicked.bTeam,
+                    aScore: aS, bScore: bS
+                });
+
                 setPlayoff1Result(tournament, aS, bS);
             }
 
             if (cur.stage === "playoff2") {
-                const p = tournament.playoff2;
-                p.score = { a: aS, b: bS };
-                logMatch(tournament, { stage: "playoff2", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: p.teams.a, bTeam: p.teams.b, aScore: aS, bScore: bS });
+                tournament.playoff2.teams = tournament.playoff2.teams || { a: null, b: null };
+                tournament.playoff2.teams.a = currentPicked.aTeam;
+                tournament.playoff2.teams.b = currentPicked.bTeam;
+                tournament.playoff2.score = { a: aS, b: bS };
+
+                logMatch(tournament, {
+                    stage: "playoff2", label: cur.label,
+                    aId: cur.aId, bId: cur.bId,
+                    aTeam: currentPicked.aTeam, bTeam: currentPicked.bTeam,
+                    aScore: aS, bScore: bS
+                });
+
                 setPlayoff2Result(tournament, aS, bS);
             }
 
             if (cur.stage === "final") {
-                // teams shown currently in UI (from last random spin)
-                const aTeamId = TEAMS.find(t => t.name === teamA.textContent)?.id ?? null;
-                const bTeamId = TEAMS.find(t => t.name === teamB.textContent)?.id ?? null;
+                // each BO3 game: both players random their team, then save score
                 addFinalGame(tournament, aS, bS);
-                logMatch(tournament, { stage: "final", label: cur.label, aId: cur.aId, bId: cur.bId, aTeam: aTeamId, bTeam: bTeamId, aScore: aS, bScore: bS });
+
+                logMatch(tournament, {
+                    stage: "final", label: cur.label,
+                    aId: cur.aId, bId: cur.bId,
+                    aTeam: currentPicked.aTeam, bTeam: currentPicked.bTeam,
+                    aScore: aS, bScore: bS
+                });
             }
 
             saveState();

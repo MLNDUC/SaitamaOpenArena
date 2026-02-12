@@ -1,4 +1,4 @@
-const CACHE = "fc26-saitama-open-arena-v1";
+const CACHE = "fc26-saitama-open-arena-v2";
 
 const CORE = [
     "./",

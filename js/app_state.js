@@ -1,4 +1,4 @@
-const KEY = "fc26_saitama_open_arena_v1";
+const KEY = "fc26_saitama_open_arena_v2";
 
 export function save(state) {
     localStorage.setItem(KEY, JSON.stringify(state));

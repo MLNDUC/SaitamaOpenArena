@@ -1,19 +1,26 @@
 export const AVATARS = [
     { key: "lion", label: "🦁 Lion" },
+    { key: "tiger", label: "🐯 Tiger" },
     { key: "fox", label: "🦊 Fox" },
     { key: "eagle", label: "🦅 Eagle" },
-    { key: "tiger", label: "🐯 Tiger" },
-    { key: "panda", label: "🐼 Panda" },
     { key: "shark", label: "🦈 Shark" },
+    { key: "dragon", label: "🐉 Dragon" },
     { key: "robot", label: "🤖 Robot" },
-    { key: "ninja", label: "🥷 Ninja" }
+    { key: "ghost", label: "👻 Ghost" },
+    { key: "panda", label: "🐼 Panda" },
+    { key: "bear", label: "🐻 Bear" }
 ];
 
+const MAP = {
+    lion: "🦁", tiger: "🐯", fox: "🦊", eagle: "🦅", shark: "🦈",
+    dragon: "🐉", robot: "🤖", ghost: "👻", panda: "🐼", bear: "🐻"
+};
+
 export function avatarEmoji(key) {
-    const map = { lion: "🦁", fox: "🦊", eagle: "🦅", tiger: "🐯", panda: "🐼", shark: "🦈", robot: "🤖", ninja: "🥷" };
-    return map[key] || "🙂";
+    return MAP[key] || "🙂";
 }
 
 export function playerName(t, id) {
-    return t.players[id]?.name ?? "-";
+    const p = t?.players?.[id];
+    return p ? p.name : "Unknown";
 }

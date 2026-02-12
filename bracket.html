@@ -6,26 +6,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>FC26 Saitama Open Arena • Bracket</title>
     <style>
-        :root {
-            --bg: #0b0f16;
-            --panel: #121826;
-            --panel2: #0f1526;
-            --line: #2a3248;
-            --text: #e6ebf2;
-            --muted: #8a93a6;
-            --a: #4da3ff;
-            --b: #00ffc6;
-        }
-
         body {
             font-family: system-ui;
             margin: 0;
-            background: var(--bg);
-            color: var(--text)
+            background: #0b0f16;
+            color: #e6ebf2
         }
 
         .wrap {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 16px
         }
@@ -35,231 +24,175 @@
             text-decoration: none
         }
 
-        .pill {
+        .top {
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
             align-items: center;
-            background: var(--panel);
-            border-radius: 14px;
-            padding: 12px
+            justify-content: space-between
+        }
+
+        .pill {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            background: #0f1526;
+            border: 1px solid #2a3248;
+            border-radius: 999px;
+            padding: 8px 10px
         }
 
         .card {
-            background: var(--panel);
+            background: #121826;
             border-radius: 14px;
             padding: 14px;
             margin: 12px 0
         }
 
         .muted {
-            color: var(--muted);
+            color: #8a93a6;
             font-size: 13px
         }
 
-        /* Bracket layout */
+        .big {
+            font-size: 18px;
+            font-weight: 1000
+        }
+
+        .divider {
+            height: 1px;
+            background: #2a3248;
+            margin: 12px 0
+        }
+
+        /* ===== Bracket layout ===== */
         .bracket {
             display: grid;
-            grid-template-columns: 1fr 80px 1fr 80px 1fr;
-            gap: 14px;
+            grid-template-columns: 1fr 64px 1fr 64px 1fr;
+            gap: 12px;
             align-items: center;
             overflow-x: auto;
-            padding: 10px 0;
+            padding-bottom: 8px;
         }
 
         .col {
-            min-width: 260px
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 260px;
         }
 
-        .connect {
-            height: 100%;
-            position: relative;
-            min-height: 320px
+        .spacer {
+            height: 42px
         }
 
-        .connect:before {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: var(--line);
-            transform: translateX(-50%);
-            opacity: .8
-        }
-
-        .hline {
-            position: absolute;
-            left: 50%;
-            width: 50%;
-            height: 2px;
-            background: var(--line);
-            opacity: .8
-        }
-
-        /* Match box */
         .box {
-            background: linear-gradient(180deg, #141c2f, var(--panel2));
-            border: 1px solid var(--line);
+            background: #0f1526;
+            border: 1px solid #2a3248;
             border-radius: 14px;
             padding: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
         }
 
-        .box h3 {
-            margin: 0 0 10px;
-            font-size: 14px;
-            color: var(--muted);
-            letter-spacing: .4px
-        }
-
-        .teamrow {
+        .boxTitle {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #2a3248;
+            color: #8a93a6;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .teamRow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
             padding: 8px 10px;
             border-radius: 12px;
-            background: #0f1526;
-            border: 1px solid #1f2740;
-            margin: 8px 0;
+            border: 1px solid #22304a;
+            background: #0b1324;
+            margin-top: 8px;
         }
 
         .left {
             display: flex;
             align-items: center;
             gap: 10px;
-            min-width: 0
+            min-width: 0;
         }
 
         .logo {
-            width: 26px;
-            height: 26px;
+            width: 34px;
+            height: 34px;
             object-fit: contain;
-            background: #0b0f16;
+            background: #0f1526;
             border: 1px solid #2a3248;
-            border-radius: 8px;
-            padding: 3px;
+            border-radius: 10px;
+            padding: 4px;
             flex: 0 0 auto;
         }
 
-        .avatar {
-            font-size: 18px;
-            flex: 0 0 auto
-        }
-
-        .pname {
+        .name {
             font-weight: 900;
-            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 170px
+            white-space: nowrap;
+            max-width: 240px;
         }
 
         .score {
             font-weight: 1000;
-            font-size: 18px;
-            min-width: 44px;
-            text-align: right
+            min-width: 38px;
+            text-align: right;
         }
 
-        .badge {
-            font-size: 11px;
-            border: 1px solid var(--line);
-            color: var(--muted);
-            padding: 2px 8px;
-            border-radius: 999px;
-            margin-left: 8px;
-            white-space: nowrap
+        .winner {
+            outline: 2px solid rgba(0, 255, 198, 0.35);
+            border-color: #2a7b6a;
         }
 
-        .centerTitle {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 8px
+        .lines {
+            position: relative;
+            height: 100%;
+            min-height: 380px;
         }
 
-        .centerTitle .big {
-            font-weight: 1000;
-            font-size: 16px
+        .lines svg {
+            width: 64px;
+            height: 100%;
+            min-height: 380px;
+            display: block;
         }
 
-        .champ {
-            font-size: 20px;
-            font-weight: 1000;
-            background: linear-gradient(135deg, var(--a), var(--b));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        /* Final BO3 */
-        .bo3 {
-            display: grid;
-            gap: 10px
-        }
-
-        .game {
-            background: #0f1526;
-            border: 1px solid var(--line);
+        .note {
+            margin-top: 6px;
+            padding: 10px;
             border-radius: 12px;
-            padding: 10px
+            background: #0f1526;
+            border: 1px dashed #2a3248;
         }
 
-        .gameTitle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px
-        }
-
-        .gameTitle b {
-            font-size: 13px
-        }
-
-        .tag {
-            font-size: 11px;
-            color: var(--muted);
-            border: 1px solid var(--line);
-            padding: 2px 8px;
-            border-radius: 999px
-        }
-
-        .gameRow {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 8px;
-            border-radius: 10px;
-            background: #121826
-        }
-
-        .smallScore {
-            font-weight: 1000
-        }
-
-        .pending {
-            opacity: .6
-        }
-
-        @media(max-width:900px) {
+        /* responsive tweaks */
+        @media (max-width: 520px) {
             .bracket {
-                grid-template-columns: 1fr;
-                gap: 12px
-            }
-
-            .connect,
-            .hline {
-                display: none
+                grid-template-columns: 1fr 42px 1fr 42px 1fr
             }
 
             .col {
-                min-width: auto
+                min-width: 240px
             }
 
-            .pname {
-                max-width: 220px
+            .name {
+                max-width: 180px
             }
         }
     </style>
@@ -267,272 +200,323 @@
 
 <body>
     <div class="wrap">
-        <div class="pill">
-            <div><b>FC26 Saitama Open Arena</b> <span class="muted">Bracket</span></div>
-            <div><a href="./index.html">Home</a> · <a href="./table.html">Table</a></div>
-        </div>
-
-        <div class="card">
-            <div class="centerTitle">
-                <div>
-                    <div class="big">Tournament Bracket</div>
-                    <div class="muted">Playoff 1 → Playoff 2 → Final (BO3)</div>
-                </div>
-                <div id="champBox" class="muted">Chưa có champion</div>
-            </div>
-
-            <div class="bracket">
-                <div class="col">
-                    <div id="po1Box"></div>
-                </div>
-                <div class="connect">
-                    <div class="hline" style="top:38%;"></div>
-                    <div class="hline" style="top:62%;"></div>
-                </div>
-                <div class="col">
-                    <div id="po2Box"></div>
-                </div>
-                <div class="connect">
-                    <div class="hline" style="top:50%;"></div>
-                </div>
-                <div class="col">
-                    <div id="finalBox"></div>
-                </div>
+        <div class="top">
+            <div class="pill"><b>FC26 Saitama Open Arena</b><span class="muted">Bracket</span></div>
+            <div class="pill">
+                <a href="./index.html">Home</a> · <a href="./table.html">Table</a>
             </div>
         </div>
 
         <div class="card">
-            <b>Final BO3 – Games</b>
-            <div class="muted">Hiển thị rõ Game 1/2/3 (kèm logo team đã random).</div>
-            <div id="bo3"></div>
+            <div class="big">Tournament Bracket</div>
+            <div class="muted">Hiển thị theo nhánh: Playoff 1 → Playoff 2 → Final (BO3). Team logo lấy từ lịch sử (log).
+            </div>
+            <div class="note muted">
+                Tip: Nếu bạn thấy logo thiếu trong Final, hãy đảm bảo Home đã <b>Save Score</b> (vì logo team per-game
+                chỉ được ghi vào log khi save).
+            </div>
+        </div>
+
+        <div class="card">
+            <div id="bracketRoot"></div>
+        </div>
+
+        <div class="card">
+            <div class="big">Match Log</div>
+            <div class="muted">Tất cả trận đã lưu (dùng để debug).</div>
+            <div class="divider"></div>
+            <div id="logList" class="muted"></div>
         </div>
     </div>
 
     <script type="module">
         import { load } from "./js/app_state.js";
         import { avatarEmoji, playerName } from "./js/ui_shared.js";
-        import { recalcStandings, ensurePlayoffsGenerated } from "./js/tournament_engine.js";
 
         const state = load();
-        if (!state?.tournament) { location.href = "./index.html"; }
+        if (!state?.tournament) {
+            location.href = "./index.html";
+        }
         const t = state.tournament;
 
-        recalcStandings(t);
-        ensurePlayoffsGenerated(t);
+        /* ===== TEAMS MAP (id -> {name, logo}) ===== */
+        const TEAMS = [
+            { id: "real-madrid", name: "Real Madrid", u: "logos/real-madrid.png" },
+            { id: "barcelona", name: "FC Barcelona", u: "logos/barcelona.png" },
+            { id: "psg", name: "Paris Saint-Germain", u: "logos/psg.png" },
+            { id: "liverpool", name: "Liverpool", u: "logos/liverpool.png" },
+            { id: "man-city", name: "Manchester City", u: "logos/man-city.png" },
+            { id: "arsenal", name: "Arsenal", u: "logos/arsenal.png" },
+            { id: "bayern", name: "Bayern Munich", u: "logos/bayern.png" },
+            { id: "atletico", name: "Atlético Madrid", u: "logos/atletico.png" },
+            { id: "newcastle", name: "Newcastle United", u: "logos/newcastle.png" },
+            { id: "napoli", name: "Napoli", u: "logos/napoli.png" },
+            { id: "tottenham", name: "Tottenham Hotspur", u: "logos/tottenham.png" },
+            { id: "chelsea", name: "Chelsea", u: "logos/chelsea.png" },
+            { id: "man-united", name: "Manchester United", u: "logos/man-united.png" },
+            { id: "leverkusen", name: "Bayer Leverkusen", u: "logos/leverkusen.png" },
+            { id: "spain", name: "Spain", u: "logos/spain.png" },
+            { id: "france", name: "France", u: "logos/france.png" },
+            { id: "argentina", name: "Argentina", u: "logos/argentina.png" },
+            { id: "england", name: "England", u: "logos/england.png" },
+            { id: "portugal", name: "Portugal", u: "logos/portugal.png" },
+            { id: "germany", name: "Germany", u: "logos/germany.png" },
+            { id: "inter", name: "Inter", u: "logos/inter.png" },
+        ];
+        const teamMap = new Map(TEAMS.map(x => [x.id, x]));
 
-        // ===== logo resolver =====
-        function logoUrl(teamId) {
+        function teamLogo(teamId) {
             if (!teamId) return "";
-            return `logos/${teamId}.png`;
+            const t = teamMap.get(teamId);
+            return t?.u || "";
         }
-        function safeTeamId(teamId) {
-            return (teamId && typeof teamId === "string") ? teamId : null;
-        }
-
-        // Find latest log entry for a stage + participant pair
-        function findLog(stage, aId, bId, labelContains = null) {
-            const logs = (t.log || []).filter(e => e.stage === stage);
-            // try direct id match (either direction)
-            const candidates = logs.filter(e =>
-                (e.aId === aId && e.bId === bId) || (e.aId === bId && e.bId === aId)
-            );
-            let c = candidates;
-            if (labelContains) {
-                c = candidates.filter(e => (e.label || "").includes(labelContains));
-            }
-            // pick newest
-            c.sort((x, y) => (y.ts || 0) - (x.ts || 0));
-            return c[0] || null;
+        function teamName(teamId) {
+            if (!teamId) return "TBD";
+            const t = teamMap.get(teamId);
+            return t?.name || teamId;
         }
 
-        function pNameOnly(id) {
-            const p = t.players[id];
-            return `${avatarEmoji(p.avatarKey)} ${p.name}`;
+        /* ===== find last log by stage ===== */
+        const logs = Array.isArray(t.log) ? t.log : [];
+
+        function lastLog(stage) {
+            const arr = logs.filter(x => x.stage === stage);
+            if (arr.length === 0) return null;
+            arr.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+            return arr[0];
         }
 
-        function teamRow(label, score, teamId, badgeHTML = "") {
-            const s = (score === null || score === undefined) ? "—" : score;
-            const tid = safeTeamId(teamId);
-            const logo = tid ? `<img class="logo" src="${logoUrl(tid)}" alt="">` : `<span class="logo" style="display:inline-block"></span>`;
+        function logsByStage(stage) {
+            const arr = logs.filter(x => x.stage === stage);
+            arr.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+            return arr;
+        }
+
+        function safeScore(x) {
+            if (x === null || x === undefined) return "—";
+            if (Number.isFinite(Number(x))) return String(x);
+            return "—";
+        }
+
+        function rowHTML({ pid, teamId, score, isWinner }) {
+            const p = (pid !== null && pid !== undefined) ? t.players[pid] : null;
+            const pLabel = p ? `${avatarEmoji(p.avatarKey)} ${p.name}` : "TBD";
+            const tn = teamName(teamId);
+            const logo = teamLogo(teamId);
+
             return `
-    <div class="teamrow">
+    <div class="teamRow ${isWinner ? "winner" : ""}">
       <div class="left">
-        ${logo}
-        <div class="avatar"></div>
-        <div class="pname">${label} ${badgeHTML}</div>
+        <img class="logo" src="${logo}" alt="">
+        <div style="min-width:0">
+          <div class="name">${pLabel}</div>
+          <div class="muted" style="font-size:12px">${tn}</div>
+        </div>
       </div>
-      <div class="score">${s}</div>
+      <div class="score">${safeScore(score)}</div>
     </div>
   `;
         }
 
-        function matchBox(title, aId, bId, aScore, bScore, aTeamId, bTeamId, badges = { a: "", b: "" }) {
+        /* ===== Determine bracket data ===== */
+        function buildBracketData() {
+            // Playoff 1 box
+            const po1 = t.playoff1;
+            const po1Log = lastLog("playoff1");
+            const po1ScoreA = po1?.score?.a ?? po1Log?.aScore ?? null;
+            const po1ScoreB = po1?.score?.b ?? po1Log?.bScore ?? null;
+            const po1TeamA = po1?.teams?.a ?? po1Log?.aTeam ?? null;
+            const po1TeamB = po1?.teams?.b ?? po1Log?.bTeam ?? null;
+            const po1WinnerId = po1?.winnerId ?? null;
+
+            // Playoff 2
+            const po2 = t.playoff2;
+            const po2Log = lastLog("playoff2");
+            const po2ScoreA = po2?.score?.a ?? po2Log?.aScore ?? null;
+            const po2ScoreB = po2?.score?.b ?? po2Log?.bScore ?? null;
+            const po2TeamA = po2?.teams?.a ?? po2Log?.aTeam ?? null;
+            const po2TeamB = po2?.teams?.b ?? po2Log?.bTeam ?? null;
+            const po2WinnerId = po2?.winnerId ?? null;
+
+            // Final BO3 (Game 1-3 from logs)
+            const finalGames = logsByStage("final"); // each entry is one game
+            // winner
+            const champId = t.championId ?? null;
+
+            return {
+                po1: {
+                    aId: po1?.aId ?? null,
+                    bId: po1?.bId ?? null,
+                    aTeam: po1TeamA, bTeam: po1TeamB,
+                    aScore: po1ScoreA, bScore: po1ScoreB,
+                    winnerId: po1WinnerId
+                },
+                po2: {
+                    aId: po2?.aId ?? (po2Log?.aId ?? null),
+                    bId: po2?.bId ?? (po2Log?.bId ?? null),
+                    aTeam: po2TeamA, bTeam: po2TeamB,
+                    aScore: po2ScoreA, bScore: po2ScoreB,
+                    winnerId: po2WinnerId
+                },
+                final: {
+                    aId: t.final?.p1Id ?? null,
+                    bId: t.final?.p2Id ?? null,
+                    games: finalGames.slice(0, 3).map((g, i) => ({
+                        game: i + 1,
+                        aTeam: g.aTeam ?? null,
+                        bTeam: g.bTeam ?? null,
+                        aScore: g.aScore ?? null,
+                        bScore: g.bScore ?? null
+                    })),
+                    winnerId: champId
+                }
+            };
+        }
+
+        function svgLinesHTML() {
+            // simple connectors: PO1 -> PO2 -> Final
+            // Use a single svg per connector column
+            const svg1 = `
+    <div class="lines">
+      <svg viewBox="0 0 64 380" preserveAspectRatio="none">
+        <path d="M 0 95 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
+        <path d="M 0 285 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
+      </svg>
+    </div>
+  `;
+            const svg2 = `
+    <div class="lines">
+      <svg viewBox="0 0 64 380" preserveAspectRatio="none">
+        <path d="M 0 190 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
+      </svg>
+    </div>
+  `;
+            return { svg1, svg2 };
+        }
+
+        function bracketHTML() {
+            const d = buildBracketData();
+            const { svg1, svg2 } = svgLinesHTML();
+
+            const po1Done = (d.po1.aScore !== null && d.po1.bScore !== null);
+            const po2Done = (d.po2.aScore !== null && d.po2.bScore !== null);
+            const champDone = (d.final.winnerId !== null);
+
+            // Final games UI (always show 3 slots)
+            const g = d.final.games;
+            const gameBoxes = [1, 2, 3].map(i => {
+                const gi = g.find(x => x.game === i);
+                const aTeam = gi?.aTeam ?? null;
+                const bTeam = gi?.bTeam ?? null;
+                const aScore = gi?.aScore ?? null;
+                const bScore = gi?.bScore ?? null;
+
+                return `
+      <div class="box" style="margin-top:12px">
+        <div class="boxTitle">
+          <div><b>Final • Game ${i}</b></div>
+          <div class="badge">${(aScore !== null && bScore !== null) ? "Played" : "TBD"}</div>
+        </div>
+        ${rowHTML({ pid: d.final.aId, teamId: aTeam, score: aScore, isWinner: (champDone && d.final.winnerId === d.final.aId) })}
+        ${rowHTML({ pid: d.final.bId, teamId: bTeam, score: bScore, isWinner: (champDone && d.final.winnerId === d.final.bId) })}
+      </div>
+    `;
+            }).join("");
+
+            const champLine = champDone
+                ? `<div class="note"><b>🏆 Champion:</b> ${playerName(t, d.final.winnerId)}</div>`
+                : `<div class="note muted">Champion: TBD</div>`;
+
             return `
-    <div class="box">
-      <h3>${title}</h3>
-      ${teamRow(pNameOnly(aId), aScore, aTeamId, badges.a)}
-      ${teamRow(pNameOnly(bId), bScore, bTeamId, badges.b)}
-      <div class="muted" style="margin-top:8px">${(aScore !== null && bScore !== null) ? "Result saved" : "Waiting for score"}</div>
+    <div class="bracket">
+      <!-- Column 1: PO1 + (seed2 waiting as visual) -->
+      <div class="col">
+        <div class="box">
+          <div class="boxTitle">
+            <div><b>Playoff 1</b></div>
+            <div class="badge">${po1Done ? "Done" : "TBD"}</div>
+          </div>
+          ${rowHTML({
+                pid: d.po1.aId, teamId: d.po1.aTeam, score: d.po1.aScore,
+                isWinner: (d.po1.winnerId !== null && d.po1.winnerId === d.po1.aId)
+            })}
+          ${rowHTML({
+                pid: d.po1.bId, teamId: d.po1.bTeam, score: d.po1.bScore,
+                isWinner: (d.po1.winnerId !== null && d.po1.winnerId === d.po1.bId)
+            })}
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="box">
+          <div class="boxTitle">
+            <div><b>Seed #2 (Waiting)</b></div>
+            <div class="badge">Auto</div>
+          </div>
+          <div class="muted">
+            Người hạng 2 sẽ vào Playoff 2 đá với Winner Playoff 1.
+          </div>
+        </div>
+      </div>
+
+      <!-- Connector PO1 -> PO2 -->
+      ${svg1}
+
+      <!-- Column 3: PO2 -->
+      <div class="col">
+        <div class="box" style="margin-top:84px">
+          <div class="boxTitle">
+            <div><b>Playoff 2</b></div>
+            <div class="badge">${po2Done ? "Done" : "TBD"}</div>
+          </div>
+          ${rowHTML({
+                pid: d.po2.aId, teamId: d.po2.aTeam, score: d.po2.aScore,
+                isWinner: (d.po2.winnerId !== null && d.po2.winnerId === d.po2.aId)
+            })}
+          ${rowHTML({
+                pid: d.po2.bId, teamId: d.po2.bTeam, score: d.po2.bScore,
+                isWinner: (d.po2.winnerId !== null && d.po2.winnerId === d.po2.bId)
+            })}
+        </div>
+      </div>
+
+      <!-- Connector PO2 -> Final -->
+      ${svg2}
+
+      <!-- Column 5: Final BO3 -->
+      <div class="col">
+        <div class="box" style="margin-top:84px">
+          <div class="boxTitle">
+            <div><b>Final (BO3)</b></div>
+            <div class="badge">${champDone ? "Completed" : "In Progress"}</div>
+          </div>
+          <div class="muted">
+            ${d.final.aId !== null ? playerName(t, d.final.aId) : "TBD"} vs ${d.final.bId !== null ? playerName(t, d.final.bId) : "TBD"}
+          </div>
+        </div>
+
+        ${gameBoxes}
+
+        ${champLine}
+      </div>
     </div>
   `;
         }
 
-        // ===== Champion =====
-        const champBox = document.getElementById("champBox");
-        if (t.championId !== null) {
-            champBox.innerHTML = `<span class="champ">🏆 ${playerName(t, t.championId)}</span>`;
-        } else champBox.textContent = "Chưa có champion";
+        /* ===== Render bracket ===== */
+        document.getElementById("bracketRoot").innerHTML = bracketHTML();
 
-        // ===== Seeds from standings =====
-        const s = t.group.standings || [];
-        const seed = {};
-        s.forEach((p, i) => seed[p.id] = i + 1);
-
-        // ===== Playoff 1 =====
-        const po1Root = document.getElementById("po1Box");
-        if (!t.playoff1) {
-            po1Root.innerHTML = `<div class="muted">Playoff 1 sẽ xuất hiện sau khi hoàn thành vòng bảng.</div>`;
-        } else {
-            const aId = t.playoff1.aId, bId = t.playoff1.bId;
-            const aScore = t.playoff1.score?.a ?? null;
-            const bScore = t.playoff1.score?.b ?? null;
-
-            const log = findLog("playoff1", aId, bId);
-            const aTeam = log?.aId === aId ? log?.aTeam : log?.bTeam;
-            const bTeam = log?.aId === aId ? log?.bTeam : log?.aTeam;
-
-            po1Root.innerHTML = matchBox(
-                "PLAYOFF 1 (3rd vs 4th)",
-                aId, bId,
-                aScore, bScore,
-                aTeam, bTeam,
-                { a: `<span class="badge">#${seed[aId] || "?"}</span>`, b: `<span class="badge">#${seed[bId] || "?"}</span>` }
-            );
+        /* ===== Render log list ===== */
+        function logLine(x) {
+            const when = x.ts ? new Date(x.ts).toLocaleString() : "";
+            const a = (x.aId !== null && x.aId !== undefined) ? playerName(t, x.aId) : "—";
+            const b = (x.bId !== null && x.bId !== undefined) ? playerName(t, x.bId) : "—";
+            const sc = (x.aScore !== null && x.bScore !== null) ? `${x.aScore}-${x.bScore}` : "—";
+            const ta = x.aTeam ? teamName(x.aTeam) : "TBD";
+            const tb = x.bTeam ? teamName(x.bTeam) : "TBD";
+            return `<div>• <b>${x.stage}</b> (${x.label || ""}) — ${a} [${ta}] vs ${b} [${tb}] : <b>${sc}</b> <span class="muted">(${when})</span></div>`;
         }
-
-        // ===== Playoff 2 =====
-        const po2Root = document.getElementById("po2Box");
-        if (!t.playoff2) {
-            po2Root.innerHTML = `<div class="muted">Playoff 2 sẽ xuất hiện sau Playoff 1.</div>`;
-        } else {
-            const aId = t.playoff2.aId;
-            const bId = t.playoff2.bId ?? t.playoff2.seed2Id;
-
-            if (aId === null || bId === null) {
-                po2Root.innerHTML = `
-      <div class="box">
-        <h3>PLAYOFF 2 (Winner vs 2nd)</h3>
-        <div class="muted">Đợi kết quả Playoff 1 để xác định đối thủ đá với #2.</div>
-      </div>
-    `;
-            } else {
-                const aScore = t.playoff2.score?.a ?? null;
-                const bScore = t.playoff2.score?.b ?? null;
-
-                const log = findLog("playoff2", aId, bId);
-                const aTeam = log?.aId === aId ? log?.aTeam : log?.bTeam;
-                const bTeam = log?.aId === aId ? log?.bTeam : log?.aTeam;
-
-                po2Root.innerHTML = matchBox(
-                    "PLAYOFF 2 (Winner vs 2nd)",
-                    aId, bId,
-                    aScore, bScore,
-                    aTeam, bTeam,
-                    { a: `<span class="badge">Winner PO1</span>`, b: `<span class="badge">#${seed[bId] || "?"}</span>` }
-                );
-            }
-        }
-
-        // ===== Final box (series participants) =====
-        const finalRoot = document.getElementById("finalBox");
-        {
-            const p1Id = t.final?.p1Id ?? null;
-            const p2Id = t.final?.p2Id ?? null;
-
-            if (p1Id === null) {
-                finalRoot.innerHTML = `<div class="muted">Final sẽ xuất hiện sau vòng bảng.</div>`;
-            } else if (p2Id === null) {
-                finalRoot.innerHTML = `
-      <div class="box">
-        <h3>FINAL (BO3)</h3>
-        ${teamRow(pNameOnly(p1Id), null, null, `<span class="badge">#${seed[p1Id] || "?"}</span>`)}
-        <div class="teamrow pending">
-          <div class="left">
-            <span class="logo" style="display:inline-block"></span>
-            <div class="pname">Challenger (Winner PO2) <span class="badge">TBD</span></div>
-          </div>
-          <div class="score">—</div>
-        </div>
-        <div class="muted" style="margin-top:8px">Đợi Playoff 2 xong để xác định đối thủ chung kết.</div>
-      </div>
-    `;
-            } else {
-                // we don't show a single team logo here because each BO3 game has its own random teams.
-                // Winner already shown at top.
-                finalRoot.innerHTML = `
-      <div class="box">
-        <h3>FINAL (BO3)</h3>
-        ${teamRow(pNameOnly(p1Id), null, null, `<span class="badge">#${seed[p1Id] || "?"}</span>`)}
-        ${teamRow(pNameOnly(p2Id), null, null, `<span class="badge">Challenger</span>`)}
-        <div class="muted" style="margin-top:8px">
-          ${t.final?.winnerId ? `Winner decided: ${playerName(t, t.final.winnerId)}` : "Playing BO3... (xem Games bên dưới)"}
-        </div>
-      </div>
-    `;
-            }
-        }
-
-        // ===== BO3 games with logos from logs =====
-        const bo3 = document.getElementById("bo3");
-        {
-            const p1Id = t.final?.p1Id ?? null;
-            const p2Id = t.final?.p2Id ?? null;
-
-            if (p1Id === null) {
-                bo3.innerHTML = `<div class="muted">Chưa có Final.</div>`;
-            } else if (p2Id === null) {
-                bo3.innerHTML = `<div class="muted">Đợi Playoff 2 xong để vào Final BO3.</div>`;
-            } else {
-                // logs for final: label includes "Game X"
-                const gLogs = [1, 2, 3].map(n => findLog("final", p1Id, p2Id, `Game ${n}`));
-
-                const blocks = [1, 2, 3].map((n, idx) => {
-                    const L = gLogs[idx];
-                    const done = !!L;
-                    // map teams by direction
-                    const aTeam = L?.aId === p1Id ? L?.aTeam : L?.bTeam;
-                    const bTeam = L?.aId === p1Id ? L?.bTeam : L?.aTeam;
-
-                    const aScore = done ? (L.aId === p1Id ? L.aScore : L.bScore) : null;
-                    const bScore = done ? (L.aId === p1Id ? L.bScore : L.aScore) : null;
-
-                    return `
-        <div class="game ${done ? "" : "pending"}">
-          <div class="gameTitle">
-            <b>Game ${n}</b>
-            <span class="tag">${done ? "Played" : "Pending"}</span>
-          </div>
-          <div class="gameRow">
-            <div class="left">
-              ${aTeam ? `<img class="logo" src="${logoUrl(aTeam)}" alt="">` : `<span class="logo" style="display:inline-block"></span>`}
-              <div>${pNameOnly(p1Id)}</div>
-            </div>
-            <div class="smallScore">${aScore === null ? "—" : aScore}</div>
-          </div>
-          <div class="gameRow" style="margin-top:6px">
-            <div class="left">
-              ${bTeam ? `<img class="logo" src="${logoUrl(bTeam)}" alt="">` : `<span class="logo" style="display:inline-block"></span>`}
-              <div>${pNameOnly(p2Id)}</div>
-            </div>
-            <div class="smallScore">${bScore === null ? "—" : bScore}</div>
-          </div>
-        </div>
-      `;
-                }).join("");
-
-                bo3.innerHTML = `<div class="bo3">${blocks}</div>`;
-            }
-        }
+        document.getElementById("logList").innerHTML = logs.length ? logs.map(logLine).join("") : "<div class='muted'>(no logs yet)</div>";
     </script>
 </body>
 

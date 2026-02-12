@@ -14,7 +14,7 @@
         }
 
         .wrap {
-            max-width: 980px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 16px
         }
@@ -47,24 +47,28 @@
 
         th,
         td {
-            padding: 10px;
             border-bottom: 1px solid #2a3248;
-            text-align: left;
-            font-size: 14px
+            padding: 10px;
+            text-align: left
         }
 
-        input {
-            width: 70px;
-            padding: 8px;
-            border-radius: 10px;
-            border: 1px solid #2a3248;
-            background: #0f1526;
-            color: #e6ebf2
+        th {
+            color: #8a93a6;
+            font-size: 13px
         }
 
         .muted {
             color: #8a93a6;
             font-size: 13px
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #2a3248;
+            color: #8a93a6;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 12px
         }
     </style>
 </head>
@@ -77,89 +81,40 @@
         </div>
 
         <div class="card">
-            <b>Fixtures (Round 1–3)</b>
-            <div class="muted">Bạn có thể nhập/sửa tỉ số tại đây. Standings sẽ tự cập nhật.</div>
-            <div id="fixtures"></div>
+            <b>Standings (Group)</b>
+            <div class="muted">Win 3 / Draw 1 / Loss 0 — GF/GA/GD</div>
+            <div id="standings"></div>
         </div>
 
         <div class="card">
-            <b>Standings</b>
-            <div id="standings"></div>
+            <b>Group Matches</b>
+            <div id="matches"></div>
+        </div>
+
+        <div class="card">
+            <b>Playoffs & Final</b>
+            <div id="po"></div>
         </div>
     </div>
 
     <script type="module">
-        import { load, save } from "./js/app_state.js";
-        import { avatarEmoji } from "./js/ui_shared.js";
-        import { recalcStandings, setGroupMatchResult } from "./js/tournament_engine.js";
+        import { load } from "./js/app_state.js";
+        import { avatarEmoji, playerName } from "./js/ui_shared.js";
+        import { recalcStandings, ensurePlayoffsGenerated } from "./js/tournament_engine.js";
 
         const state = load();
         if (!state?.tournament) { location.href = "./index.html"; }
         const t = state.tournament;
 
-        function pLabel(id) {
-            const p = t.players[id];
-            return `${avatarEmoji(p.avatarKey)} ${p.name}`;
-        }
+        recalcStandings(t);
+        ensurePlayoffsGenerated(t);
 
-        function renderFixtures() {
-            const byRound = { 1: [], 2: [], 3: [] };
-            t.group.matches.forEach((m, idx) => byRound[m.round].push({ m, idx }));
-
-            const root = document.getElementById("fixtures");
-            root.innerHTML = "";
-
-            [1, 2, 3].forEach(r => {
-                const box = document.createElement("div");
-                box.style.marginTop = "10px";
-                box.innerHTML = `<div style="margin:8px 0"><b>Round ${r}</b></div>`;
-                const table = document.createElement("table");
-                table.innerHTML = `
-      <thead><tr><th>Match</th><th>Score</th></tr></thead>
-      <tbody></tbody>
-    `;
-                const tb = table.querySelector("tbody");
-                byRound[r].forEach(({ m, idx }) => {
-                    const tr = document.createElement("tr");
-                    const a = pLabel(m.aId);
-                    const b = pLabel(m.bId);
-                    const sa = (m.score.a ?? "");
-                    const sb = (m.score.b ?? "");
-                    tr.innerHTML = `
-        <td>${a} <span class="muted">vs</span> ${b}</td>
-        <td>
-          <input data-idx="${idx}" data-side="a" type="number" min="0" value="${sa}"> -
-          <input data-idx="${idx}" data-side="b" type="number" min="0" value="${sb}">
-        </td>
-      `;
-                    tb.appendChild(tr);
-                });
-                box.appendChild(table);
-                root.appendChild(box);
-            });
-
-            root.querySelectorAll("input").forEach(inp => {
-                inp.addEventListener("change", () => {
-                    const idx = Number(inp.dataset.idx);
-                    const m = t.group.matches[idx];
-                    const aVal = (document.querySelector(`input[data-idx="${idx}"][data-side="a"]`).value);
-                    const bVal = (document.querySelector(`input[data-idx="${idx}"][data-side="b"]`).value);
-                    setGroupMatchResult(t, idx, aVal, bVal);
-                    recalcStandings(t);
-                    save({ tournament: t });
-                    renderStandings();
-                });
-            });
-        }
-
-        function renderStandings() {
-            recalcStandings(t);
-            const s = t.group.standings;
-            const root = document.getElementById("standings");
+        function standingsHTML() {
+            const s = t.group.standings || [];
             const rows = s.map((p, i) => `
     <tr>
-      <td>${i + 1}</td>
-      <td>${avatarEmoji(p.avatarKey)} ${p.name}</td>
+      <td><span class="badge">#${i + 1}</span></td>
+      <td>${avatarEmoji(p.avatarKey)} <b>${p.name}</b></td>
       <td>${p.stats.played}</td>
       <td>${p.stats.win}</td>
       <td>${p.stats.draw}</td>
@@ -170,22 +125,75 @@
       <td><b>${p.stats.pts}</b></td>
     </tr>
   `).join("");
-
-            root.innerHTML = `
+            return `
     <table>
-      <thead>
-        <tr>
-          <th>#</th><th>Player</th><th>P</th><th>W</th><th>D</th><th>L</th>
-          <th>GF</th><th>GA</th><th>GD</th><th>PTS</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>#</th><th>Player</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th>
+      </tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
         }
 
-        renderFixtures();
-        renderStandings();
+        function matchRow(m) {
+            const A = t.players[m.aId], B = t.players[m.bId];
+            const sc = (m.score.a === null || m.score.b === null) ? "—" : `${m.score.a} - ${m.score.b}`;
+            const ta = m.teams.a ? `<span class="badge">${m.teams.a}</span>` : `<span class="badge">TBD</span>`;
+            const tb = m.teams.b ? `<span class="badge">${m.teams.b}</span>` : `<span class="badge">TBD</span>`;
+            return `
+    <tr>
+      <td>R${m.round}</td>
+      <td>${avatarEmoji(A.avatarKey)} ${A.name} ${ta}</td>
+      <td>${avatarEmoji(B.avatarKey)} ${B.name} ${tb}</td>
+      <td><b>${sc}</b></td>
+    </tr>
+  `;
+        }
+
+        function matchesHTML() {
+            const rows = t.group.matches.map(matchRow).join("");
+            return `
+    <table>
+      <thead><tr><th>Round</th><th>Home</th><th>Away</th><th>Score</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+        }
+
+        function poHTML() {
+            const lines = [];
+
+            if (t.playoff1) {
+                const A = t.players[t.playoff1.aId], B = t.players[t.playoff1.bId];
+                const sc = (t.playoff1.score.a === null || t.playoff1.score.b === null) ? "—" : `${t.playoff1.score.a} - ${t.playoff1.score.b}`;
+                lines.push(`<div><b>Playoff 1</b>: ${A.name} vs ${B.name} — <b>${sc}</b></div>`);
+            }
+            if (t.playoff2 && t.playoff2.aId !== null) {
+                const A = t.players[t.playoff2.aId], B = t.players[t.playoff2.bId];
+                const sc = (t.playoff2.score.a === null || t.playoff2.score.b === null) ? "—" : `${t.playoff2.score.a} - ${t.playoff2.score.b}`;
+                lines.push(`<div><b>Playoff 2</b>: ${A.name} vs ${B.name} — <b>${sc}</b></div>`);
+            } else {
+                lines.push(`<div class="muted">Playoff 2: chờ Playoff 1 xong.</div>`);
+            }
+
+            if (t.final?.p2Id !== null) {
+                const A = t.players[t.final.p1Id], B = t.players[t.final.p2Id];
+                lines.push(`<div style="margin-top:8px"><b>Final BO3</b>: ${A.name} vs ${B.name}</div>`);
+                lines.push(`<div class="muted">Games played: ${t.final.matches.length} | Winner: ${t.final.winnerId !== null ? playerName(t, t.final.winnerId) : "TBD"}</div>`);
+            } else {
+                lines.push(`<div class="muted">Final: chờ Playoff 2 xong.</div>`);
+            }
+
+            if (t.championId !== null) {
+                lines.push(`<div style="margin-top:10px"><b>🏆 Champion:</b> ${playerName(t, t.championId)}</div>`);
+            }
+
+            return lines.join("");
+        }
+
+        document.getElementById("standings").innerHTML = standingsHTML();
+        document.getElementById("matches").innerHTML = matchesHTML();
+        document.getElementById("po").innerHTML = poHTML();
     </script>
 </body>
 

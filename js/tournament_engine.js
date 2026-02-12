@@ -46,10 +46,8 @@ function blankStats() {
 }
 
 export function recalcStandings(t) {
-    // reset
     t.players.forEach(p => p.stats = blankStats());
 
-    // apply group matches with score
     for (const match of t.group.matches) {
         const { aId, bId, score } = match;
         if (score.a === null || score.b === null) continue;
@@ -96,8 +94,6 @@ export function groupCompleted(t) {
 
 export function ensurePlayoffsGenerated(t) {
     if (!groupCompleted(t)) return;
-
-    // already generated
     if (t.playoff1) return;
 
     const s = t.group.standings;
@@ -130,7 +126,6 @@ export function setPlayoff1Result(t, aScore, bScore) {
 
     p.winnerId = (p.score.a > p.score.b) ? p.aId : p.bId;
 
-    // Playoff2: WinnerPO1 vs seed2
     t.playoff2.aId = p.winnerId;
     t.playoff2.bId = t.playoff2.seed2Id;
 }
@@ -142,13 +137,12 @@ export function setPlayoff2Result(t, aScore, bScore) {
     if (p.score.a === null || p.score.b === null) return;
 
     p.winnerId = (p.score.a > p.score.b) ? p.aId : p.bId;
-
-    // Final challenger determined
     t.final.p2Id = p.winnerId;
 }
 
 export function addFinalGame(t, p1Score, p2Score) {
     if (t.final.winnerId) return;
+
     const a = toIntOrNull(p1Score);
     const b = toIntOrNull(p2Score);
     if (a === null || b === null) return;
@@ -170,8 +164,6 @@ export function addFinalGame(t, p1Score, p2Score) {
 }
 
 export function currentStage(t) {
-    // returns {stage, label, aId, bId, matchIndex?}
-    // 1) next unscored group match
     const idx = t.group.matches.findIndex(m => m.score.a === null || m.score.b === null);
     if (idx !== -1) {
         const m = t.group.matches[idx];
@@ -180,22 +172,24 @@ export function currentStage(t) {
 
     ensurePlayoffsGenerated(t);
 
-    // 2) playoff1
     if (t.playoff1 && (t.playoff1.score.a === null || t.playoff1.score.b === null)) {
         return { stage: "playoff1", label: "Playoff 1 (3rd vs 4th)", aId: t.playoff1.aId, bId: t.playoff1.bId };
     }
 
-    // 3) playoff2
     if (t.playoff2 && t.playoff2.aId !== null && (t.playoff2.score.a === null || t.playoff2.score.b === null)) {
         return { stage: "playoff2", label: "Playoff 2 (Winner vs 2nd)", aId: t.playoff2.aId, bId: t.playoff2.bId };
     }
 
-    // 4) final BO3 (if not completed)
+    // Final BO3
     if (t.final && t.final.p2Id !== null && !t.final.winnerId) {
-        return { stage: "final", label: `Final BO3 (Game ${t.final.matches.length + 1})`, aId: t.final.p1Id, bId: t.final.p2Id };
+        return {
+            stage: "final",
+            label: `Final BO3 (Game ${t.final.matches.length + 1})`,
+            aId: t.final.p1Id,
+            bId: t.final.p2Id
+        };
     }
 
-    // done
     return { stage: "done", label: "Tournament Completed", aId: null, bId: null };
 }
 

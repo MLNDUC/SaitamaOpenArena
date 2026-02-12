@@ -7,6 +7,8 @@
     <title>FC26 Saitama Open Arena</title>
     <meta name="apple-mobile-web-app-title" content="FC26 Saitama Open Arena">
 
+    <link rel="manifest" href="./manifest.webmanifest">
+
     <style>
         body {
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
@@ -52,6 +54,7 @@
             min-width: 260px
         }
 
+        /* ✅ iOS Safari: input < 16px => auto zoom */
         input,
         select,
         button {
@@ -60,7 +63,13 @@
             border-radius: 10px;
             border: 1px solid #2a3248;
             background: #0f1526;
-            color: #e6ebf2
+            color: #e6ebf2;
+            font-size: 16px;
+        }
+
+        input[type="number"] {
+            text-align: center;
+            font-size: 18px
         }
 
         button {
@@ -150,8 +159,11 @@
             <div class="row" id="setupInputs"></div>
             <div class="row">
                 <div class="col"><button id="btnCreate">Create New Tournament</button></div>
-                <div class="col"><button id="btnReset" style="background:linear-gradient(135deg,#ff7a7a,#ffb86b)">Reset
-                        Tournament</button></div>
+                <div class="col">
+                    <button id="btnReset" style="background:linear-gradient(135deg,#ff7a7a,#ffb86b)">
+                        Reset Tournament
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -180,18 +192,12 @@
             </div>
 
             <div class="row">
-                <div class="col">
-                    <button id="btnRandomA">Player A Random Team</button>
-                </div>
-                <div class="col">
-                    <button id="btnRandomB">Player B Random Team</button>
-                </div>
+                <div class="col"><button id="btnRandomA">Player A Random Team</button></div>
+                <div class="col"><button id="btnRandomB">Player B Random Team</button></div>
             </div>
 
             <div class="row">
-                <div class="col">
-                    <button id="btnSaveMatch" disabled>Save Score & Advance</button>
-                </div>
+                <div class="col"><button id="btnSaveMatch" disabled>Save Score & Advance</button></div>
             </div>
 
             <div class="row">
@@ -214,11 +220,11 @@
             <div class="grid2">
                 <div>
                     <label class="muted">Score A</label>
-                    <input id="scoreA" type="number" min="0" placeholder="0">
+                    <input id="scoreA" type="number" min="0" inputmode="numeric" placeholder="0">
                 </div>
                 <div>
                     <label class="muted">Score B</label>
-                    <input id="scoreB" type="number" min="0" placeholder="0">
+                    <input id="scoreB" type="number" min="0" inputmode="numeric" placeholder="0">
                 </div>
             </div>
 
@@ -238,7 +244,7 @@
             logMatch
         } from "./js/tournament_engine.js";
 
-        // ====== TEAMS LOCAL (21) ======
+        /* ===== TEAMS LOCAL (21) ===== */
         const TEAMS = [
             { id: "real-madrid", name: "Real Madrid", u: "logos/real-madrid.png" },
             { id: "barcelona", name: "FC Barcelona", u: "logos/barcelona.png" },
@@ -263,34 +269,30 @@
             { id: "inter", name: "Inter", u: "logos/inter.png" },
         ];
 
+        /* ===== Sounds ===== */
         const tickSound = new Audio("sounds/tick.mp3");
-        tickSound.volume = 0.7;
-        tickSound.preload = "auto";
-
+        tickSound.volume = 0.7; tickSound.preload = "auto";
         const dongSound = new Audio("sounds/dong.mp3");
-        dongSound.volume = 0.85;
-        dongSound.preload = "auto";
-
+        dongSound.volume = 0.85; dongSound.preload = "auto";
         function playTick() { try { tickSound.currentTime = 0; tickSound.play(); } catch (e) { } }
         function playDong() { try { dongSound.currentTime = 0; dongSound.play(); } catch (e) { } }
 
-        let state = load(); // { tournament }
+        /* ===== State ===== */
+        let state = load();
         let tournament = state?.tournament ?? null;
 
+        /* ===== DOM ===== */
         const setupCard = document.getElementById("setupCard");
         const matchCard = document.getElementById("matchCard");
         const setupInputs = document.getElementById("setupInputs");
-
         const selA = document.getElementById("selA");
         const selB = document.getElementById("selB");
         const stageLabel = document.getElementById("stageLabel");
-
         const btnCreate = document.getElementById("btnCreate");
         const btnReset = document.getElementById("btnReset");
         const btnRandomA = document.getElementById("btnRandomA");
         const btnRandomB = document.getElementById("btnRandomB");
         const btnSaveMatch = document.getElementById("btnSaveMatch");
-
         const logoA = document.getElementById("logoA");
         const logoB = document.getElementById("logoB");
         const teamA = document.getElementById("teamA");
@@ -300,8 +302,20 @@
         const scoreA = document.getElementById("scoreA");
         const scoreB = document.getElementById("scoreB");
 
-        // Current match picked teams (per match/game)
+        /* ===== Per match picked team ===== */
         let currentPicked = { aTeam: null, bTeam: null };
+
+        function saveState() { save({ tournament }); }
+
+        function showTournamentUI() {
+            setupCard.style.display = "none";
+            matchCard.style.display = "block";
+            renderCurrentMatch();
+        }
+        function showSetupUI() {
+            setupCard.style.display = "block";
+            matchCard.style.display = "none";
+        }
 
         function renderSetupInputs() {
             setupInputs.innerHTML = "";
@@ -315,30 +329,14 @@
       <select id="pava_${i}"></select>
     `;
                 setupInputs.appendChild(col);
-
                 const sel = col.querySelector(`#pava_${i}`);
                 AVATARS.forEach(a => {
                     const opt = document.createElement("option");
                     opt.value = a.key;
-                    opt.textContent = `${a.label}`;
+                    opt.textContent = a.label;
                     sel.appendChild(opt);
                 });
             }
-        }
-
-        function saveState() {
-            save({ tournament });
-        }
-
-        function showTournamentUI() {
-            setupCard.style.display = "none";
-            matchCard.style.display = "block";
-            renderCurrentMatch();
-        }
-
-        function showSetupUI() {
-            setupCard.style.display = "block";
-            matchCard.style.display = "none";
         }
 
         function teamById(id) { return TEAMS.find(t => t.id === id); }
@@ -380,21 +378,17 @@
                 const p = tournament.playoff2;
                 if (p?.teams?.a && p?.teams?.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
             }
-            // final teams are per-game, decided in Home each game; not persisted in object (logged only)
             return null;
         }
 
-        function randomOneTeam(excludeTeamId = null) {
+        function randomOneTeam(excludeId = null) {
             let t = TEAMS[(Math.random() * TEAMS.length) | 0];
-            while (excludeTeamId && t.id === excludeTeamId) {
-                t = TEAMS[(Math.random() * TEAMS.length) | 0];
-            }
+            while (excludeId && t.id === excludeId) t = TEAMS[(Math.random() * TEAMS.length) | 0];
             return t;
         }
 
-        // EASING SPIN + tick + suspense + dong
+        /* ===== Spin effect (aggressive easing + suspense) ===== */
         async function spinWithSound(onFrame, onDone) {
-            // unlock audio (iOS)
             await Promise.allSettled([
                 tickSound.play().then(() => tickSound.pause()),
                 dongSound.play().then(() => dongSound.pause())
@@ -402,14 +396,13 @@
 
             const totalTime = 3300;
             const startDelay = 45;
-            const endDelay = 700;      // chậm cuối
-            const suspenseHoldMs = 600; // hồi hộp
-
+            const endDelay = 700;
+            const suspenseHoldMs = 600;
             const startTime = performance.now();
 
             function loop(now) {
                 const p = Math.min((now - startTime) / totalTime, 1);
-                const ease = p * p * p; // gắt
+                const ease = p * p * p;
                 const delay = startDelay + (endDelay - startDelay) * ease;
 
                 onFrame();
@@ -418,19 +411,14 @@
                 if (p < 1) {
                     setTimeout(() => requestAnimationFrame(loop), delay);
                 } else {
-                    setTimeout(() => {
-                        onDone();
-                        playDong();
-                    }, suspenseHoldMs);
+                    setTimeout(() => { onDone(); playDong(); }, suspenseHoldMs);
                 }
             }
             requestAnimationFrame(loop);
         }
 
         function maybeEnableSave() {
-            if (currentPicked.aTeam && currentPicked.bTeam) {
-                btnSaveMatch.disabled = false;
-            }
+            if (currentPicked.aTeam && currentPicked.bTeam) btnSaveMatch.disabled = false;
         }
 
         function renderCurrentMatch() {
@@ -438,76 +426,55 @@
             stageLabel.textContent = cur.label;
 
             if (cur.stage === "done") {
-                selA.innerHTML = "";
-                selB.innerHTML = "";
-
-                btnRandomA.disabled = true;
-                btnRandomB.disabled = true;
-                btnSaveMatch.disabled = true;
-
-                teamA.textContent = "Tournament Completed";
-                teamB.textContent = "";
-
+                selA.innerHTML = ""; selB.innerHTML = "";
+                btnRandomA.disabled = true; btnRandomB.disabled = true; btnSaveMatch.disabled = true;
+                teamA.textContent = "Tournament Completed"; teamB.textContent = "";
                 playerA.textContent = tournament.championId !== null
                     ? `🏆 Champion: ${playerName(tournament, tournament.championId)}`
                     : "";
-
                 playerB.textContent = "";
-                logoA.src = "";
-                logoB.src = "";
-                scoreA.value = "";
-                scoreB.value = "";
+                logoA.src = ""; logoB.src = "";
+                scoreA.value = ""; scoreB.value = "";
 
-                // 👉 THÊM NÚT START NEW
                 if (!document.getElementById("btnRestart")) {
                     const restartBtn = document.createElement("button");
                     restartBtn.id = "btnRestart";
                     restartBtn.textContent = "Start New Tournament";
                     restartBtn.style.marginTop = "20px";
-                    restartBtn.style.background =
-                        "linear-gradient(135deg,#ffcc00,#ff8800)";
-
+                    restartBtn.style.background = "linear-gradient(135deg,#ffcc00,#ff8800)";
                     restartBtn.onclick = () => {
                         if (confirm("Start new tournament?")) {
                             localStorage.clear();
                             location.reload();
                         }
                     };
-
-                    document.getElementById("matchCard").appendChild(restartBtn);
+                    matchCard.appendChild(restartBtn);
                 }
-
                 return;
             }
 
-            // lock selects to correct players only
             fillPlayerSelect(selA, [cur.aId]);
             fillPlayerSelect(selB, [cur.bId]);
 
-            // reset input + picked
-            scoreA.value = "";
-            scoreB.value = "";
+            scoreA.value = ""; scoreB.value = "";
             btnSaveMatch.disabled = true;
 
             currentPicked = { aTeam: null, bTeam: null };
             btnRandomA.disabled = false;
             btnRandomB.disabled = false;
 
-            // show already assigned teams (group/playoffs)
             const assigned = getAssignedTeams(cur);
             if (assigned) {
                 currentPicked.aTeam = assigned.aTeam;
                 currentPicked.bTeam = assigned.bTeam;
                 setTeamUI("A", assigned.aTeam, cur.aId);
                 setTeamUI("B", assigned.bTeam, cur.bId);
-
                 btnRandomA.disabled = true;
                 btnRandomB.disabled = true;
                 btnSaveMatch.disabled = false;
                 return;
             }
 
-            // blank state
             logoA.src = ""; logoB.src = "";
             teamA.textContent = "—"; teamB.textContent = "—";
             playerA.textContent = `${avatarEmoji(tournament.players[cur.aId].avatarKey)} ${tournament.players[cur.aId].name}`;
@@ -517,25 +484,18 @@
         btnRandomA.addEventListener("click", async () => {
             const cur = currentStage(tournament);
             if (cur.stage === "done") return;
-
             btnRandomA.disabled = true;
             btnSaveMatch.disabled = true;
 
             let lastA = null;
-
             await spinWithSound(
-                () => {
-                    const ta = randomOneTeam(currentPicked.bTeam);
-                    lastA = ta;
-                    setTeamUI("A", ta.id, cur.aId);
-                },
+                () => { const ta = randomOneTeam(currentPicked.bTeam); lastA = ta; setTeamUI("A", ta.id, cur.aId); },
                 () => {
                     currentPicked.aTeam = lastA.id;
 
-                    // persist team for group/playoffs (final teams are per game, stored via log on save)
+                    // Persist for group/playoffs (final per-game -> logged on save)
                     if (cur.stage === "group") {
-                        const m = tournament.group.matches[cur.matchIndex];
-                        m.teams.a = currentPicked.aTeam;
+                        tournament.group.matches[cur.matchIndex].teams.a = currentPicked.aTeam;
                     } else if (cur.stage === "playoff1") {
                         tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
                         tournament.playoff1.teams.a = currentPicked.aTeam;
@@ -553,24 +513,17 @@
         btnRandomB.addEventListener("click", async () => {
             const cur = currentStage(tournament);
             if (cur.stage === "done") return;
-
             btnRandomB.disabled = true;
             btnSaveMatch.disabled = true;
 
             let lastB = null;
-
             await spinWithSound(
-                () => {
-                    const tb = randomOneTeam(currentPicked.aTeam);
-                    lastB = tb;
-                    setTeamUI("B", tb.id, cur.bId);
-                },
+                () => { const tb = randomOneTeam(currentPicked.aTeam); lastB = tb; setTeamUI("B", tb.id, cur.bId); },
                 () => {
                     currentPicked.bTeam = lastB.id;
 
                     if (cur.stage === "group") {
-                        const m = tournament.group.matches[cur.matchIndex];
-                        m.teams.b = currentPicked.bTeam;
+                        tournament.group.matches[cur.matchIndex].teams.b = currentPicked.bTeam;
                     } else if (cur.stage === "playoff1") {
                         tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
                         tournament.playoff1.teams.b = currentPicked.bTeam;
@@ -600,7 +553,6 @@
                 return;
             }
 
-            // Save by stage
             if (cur.stage === "group") {
                 setGroupMatchTeams(tournament, cur.matchIndex, currentPicked.aTeam, currentPicked.bTeam);
                 setGroupMatchResult(tournament, cur.matchIndex, aS, bS);
@@ -648,54 +600,42 @@
             }
 
             if (cur.stage === "final") {
-
-                // ===== GUARD BO3 =====
-
-                // nếu đã có champion → dừng
+                // ✅ BO3 UX: win 2 => stop, no draw, no game4
                 if (tournament.final?.winnerId || tournament.championId !== null) {
                     alert("Final đã kết thúc rồi.");
                     return;
                 }
-
-                // không cho quá 3 game
                 const played = tournament.final?.matches?.length || 0;
                 if (played >= 3) {
                     alert("Final BO3 tối đa 3 game.");
                     return;
                 }
-
-                // không cho hòa ở BO3
                 if (aS === bS) {
                     alert("Final BO3 không cho hòa.");
                     return;
                 }
 
-                // ===== SAVE GAME =====
                 addFinalGame(tournament, aS, bS);
 
-                // chắc kèo champion nếu engine chưa set
-                if (tournament.final?.winnerId) {
-                    tournament.championId = tournament.final.winnerId;
-                }
-
+                // log teams per game
                 logMatch(tournament, {
-                    stage: "final",
-                    label: cur.label,
-                    aId: cur.aId,
-                    bId: cur.bId,
-                    aTeam: currentPicked.aTeam,
-                    bTeam: currentPicked.bTeam,
-                    aScore: aS,
-                    bScore: bS
+                    stage: "final", label: cur.label,
+                    aId: cur.aId, bId: cur.bId,
+                    aTeam: currentPicked.aTeam, bTeam: currentPicked.bTeam,
+                    aScore: aS, bScore: bS
                 });
-            }
 
+                // ✅ Notify winner immediately if decided
+                if (tournament.championId !== null) {
+                    alert(`🏆 CHAMPION: ${playerName(tournament, tournament.championId)} !!!`);
+                }
+            }
 
             saveState();
             renderCurrentMatch();
         });
 
-        // Setup
+        /* ===== Setup / Reset ===== */
         renderSetupInputs();
 
         btnCreate.addEventListener("click", () => {
@@ -717,7 +657,12 @@
             showSetupUI();
         });
 
-        // boot
+        /* ===== PWA register ===== */
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("./sw.js").catch(() => { });
+        }
+
+        /* ===== boot ===== */
         if (tournament) showTournamentUI();
         else showSetupUI();
     </script>

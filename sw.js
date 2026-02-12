@@ -1,6 +1,5 @@
-const CACHE = "fc26-saitama-open-arena-v7";
-
-const CORE = [
+const CACHE_NAME = "fc26-saitama-open-arena-prod";
+const ASSETS = [
     "./",
     "./index.html",
     "./table.html",
@@ -8,21 +7,18 @@ const CORE = [
     "./manifest.webmanifest",
     "./sw.js",
 
-    // JS
     "./js/app_state.js",
     "./js/tournament_engine.js",
     "./js/ui_shared.js",
 
-    // PWA Icons
+    "./sounds/tick.mp3",
+    "./sounds/dong.mp3",
+
     "./icons/icon-180.png",
     "./icons/icon-192.png",
     "./icons/icon-512.png",
 
-    // Sounds
-    "./sounds/tick.mp3",
-    "./sounds/dong.mp3",
-
-    // Logos (21)
+    // logos
     "./logos/real-madrid.png",
     "./logos/barcelona.png",
     "./logos/psg.png",
@@ -46,23 +42,51 @@ const CORE = [
     "./logos/inter.png"
 ];
 
-self.addEventListener("install", (e) => {
-    e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)));
+// Install: cache core
+self.addEventListener("install", (event) => {
     self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    );
 });
 
-self.addEventListener("activate", (e) => {
-    e.waitUntil(
-        caches.keys().then((keys) =>
-            Promise.all(keys.map((k) => (k !== CACHE ? caches.delete(k) : null)))
+// Activate: delete old caches
+self.addEventListener("activate", (event) => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.map(k => (k !== CACHE_NAME ? caches.delete(k) : null)))
         )
     );
     self.clients.claim();
 });
 
-// Cache-first for app assets
-self.addEventListener("fetch", (e) => {
-    e.respondWith(
-        caches.match(e.request).then((r) => r || fetch(e.request))
+// Fetch
+self.addEventListener("fetch", (event) => {
+    const req = event.request;
+
+    // HTML navigation => network-first (avoid stale HTML / JS references)
+    if (req.mode === "navigate") {
+        event.respondWith(
+            fetch(req)
+                .then(res => {
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+                    return res;
+                })
+                .catch(() => caches.match(req))
+        );
+        return;
+    }
+
+    // Others => cache-first
+    event.respondWith(
+        caches.match(req).then(cached => {
+            if (cached) return cached;
+            return fetch(req).then(res => {
+                const copy = res.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+                return res;
+            });
+        })
     );
 });

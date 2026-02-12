@@ -648,16 +648,48 @@
             }
 
             if (cur.stage === "final") {
-                // each BO3 game: both players random their team, then save score
+
+                // ===== GUARD BO3 =====
+
+                // nếu đã có champion → dừng
+                if (tournament.final?.winnerId || tournament.championId !== null) {
+                    alert("Final đã kết thúc rồi.");
+                    return;
+                }
+
+                // không cho quá 3 game
+                const played = tournament.final?.matches?.length || 0;
+                if (played >= 3) {
+                    alert("Final BO3 tối đa 3 game.");
+                    return;
+                }
+
+                // không cho hòa ở BO3
+                if (aS === bS) {
+                    alert("Final BO3 không cho hòa.");
+                    return;
+                }
+
+                // ===== SAVE GAME =====
                 addFinalGame(tournament, aS, bS);
 
+                // chắc kèo champion nếu engine chưa set
+                if (tournament.final?.winnerId) {
+                    tournament.championId = tournament.final.winnerId;
+                }
+
                 logMatch(tournament, {
-                    stage: "final", label: cur.label,
-                    aId: cur.aId, bId: cur.bId,
-                    aTeam: currentPicked.aTeam, bTeam: currentPicked.bTeam,
-                    aScore: aS, bScore: bS
+                    stage: "final",
+                    label: cur.label,
+                    aId: cur.aId,
+                    bId: cur.bId,
+                    aTeam: currentPicked.aTeam,
+                    bTeam: currentPicked.bTeam,
+                    aScore: aS,
+                    bScore: bS
                 });
             }
+
 
             saveState();
             renderCurrentMatch();

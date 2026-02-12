@@ -1,4 +1,4 @@
-const CACHE_NAME = "fc26-saitama-open-arena-prod";
+const CACHE_NAME = "fc26-saitama-open-arena-prod-v2";
 const ASSETS = [
     "./",
     "./index.html",

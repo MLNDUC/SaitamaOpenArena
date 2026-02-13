@@ -65,20 +65,27 @@
             margin: 12px 0
         }
 
-        /* ===== Bracket layout ===== */
+        .note {
+            margin-top: 6px;
+            padding: 10px;
+            border-radius: 12px;
+            background: #0f1526;
+            border: 1px dashed #2a3248
+        }
+
         .bracket {
             display: grid;
             grid-template-columns: 1fr 64px 1fr 64px 1fr;
             gap: 12px;
             align-items: center;
-            padding-bottom: 8px;
+            padding-bottom: 8px
         }
 
         .col {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            min-width: 260px;
+            min-width: 260px
         }
 
         .spacer {
@@ -89,7 +96,7 @@
             background: #0f1526;
             border: 1px solid #2a3248;
             border-radius: 14px;
-            padding: 12px;
+            padding: 12px
         }
 
         .boxTitle {
@@ -97,7 +104,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 8px
         }
 
         .badge {
@@ -107,7 +114,7 @@
             padding: 2px 8px;
             border-radius: 999px;
             font-size: 12px;
-            white-space: nowrap;
+            white-space: nowrap
         }
 
         .teamRow {
@@ -119,14 +126,14 @@
             border-radius: 12px;
             border: 1px solid #22304a;
             background: #0b1324;
-            margin-top: 8px;
+            margin-top: 8px
         }
 
         .left {
             display: flex;
             align-items: center;
             gap: 10px;
-            min-width: 0;
+            min-width: 0
         }
 
         .logo {
@@ -137,7 +144,7 @@
             border: 1px solid #2a3248;
             border-radius: 10px;
             padding: 4px;
-            flex: 0 0 auto;
+            flex: 0 0 auto
         }
 
         .name {
@@ -145,47 +152,39 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            max-width: 240px;
+            max-width: 240px
         }
 
         .score {
             font-weight: 1000;
             min-width: 38px;
-            text-align: right;
+            text-align: right
         }
 
         .winner {
             outline: 2px solid rgba(0, 255, 198, 0.35);
-            border-color: #2a7b6a;
+            border-color: #2a7b6a
         }
 
         .lines {
             position: relative;
             height: 100%;
-            min-height: 380px;
+            min-height: 380px
         }
 
         .lines svg {
             width: 64px;
             height: 100%;
             min-height: 380px;
-            display: block;
+            display: block
         }
 
-        .note {
-            margin-top: 6px;
-            padding: 10px;
-            border-radius: 12px;
-            background: #0f1526;
-            border: 1px dashed #2a3248;
-        }
-
-        /* ===== Mobile-friendly viewport + zoom controls (Cách 1) ===== */
+        /* zoom controls */
         .controls {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-            margin: 10px 0 0;
+            margin: 10px 0 0
         }
 
         .controls button {
@@ -195,13 +194,13 @@
             background: #0f1526;
             color: #e6ebf2;
             font-weight: 900;
-            cursor: pointer;
+            cursor: pointer
         }
 
         .controls button.primary {
             border: none;
             background: linear-gradient(135deg, #4da3ff, #00ffc6);
-            color: #001019;
+            color: #001019
         }
 
         .bracketViewport {
@@ -213,15 +212,15 @@
             border: 1px solid #2a3248;
             padding: 10px;
             touch-action: pan-x pan-y;
-            user-select: none;
+            user-select: none
         }
 
         .bracketScale {
             transform-origin: 0 0;
-            will-change: transform;
+            will-change: transform
         }
 
-        @media (max-width: 520px) {
+        @media (max-width:520px) {
             .bracket {
                 grid-template-columns: 1fr 42px 1fr 42px 1fr
             }
@@ -245,19 +244,13 @@
     <div class="wrap">
         <div class="top">
             <div class="pill"><b>FC26 Saitama Open Arena</b><span class="muted">Bracket</span></div>
-            <div class="pill">
-                <a href="./index.html">Home</a> · <a href="./table.html">Table</a>
-            </div>
+            <div class="pill"><a href="./index.html">Home</a> · <a href="./table.html">Table</a></div>
         </div>
 
         <div class="card">
             <div class="big">Tournament Bracket</div>
             <div class="muted">Mobile: dùng Fit/Zoom và kéo ngang để xem toàn bộ bracket.</div>
-            <div class="note muted">
-                Tip: Final logo lấy từ log (chỉ có sau khi bạn <b>Save Score</b>).
-            </div>
 
-            <!-- Controls -->
             <div class="controls">
                 <button id="btnZoomOut">−</button>
                 <button id="btnFit" class="primary">Fit</button>
@@ -265,15 +258,18 @@
                 <span class="muted" id="zoomLabel" style="align-self:center">Zoom: 100%</span>
             </div>
 
-            <!-- Viewport -->
             <div class="bracketViewport" id="viewport">
                 <div class="bracketScale" id="bracketRoot"></div>
+            </div>
+
+            <div class="note muted">
+                Final logo/teams lấy từ log (có sau khi bạn <b>Save Score</b> ở Home).
             </div>
         </div>
 
         <div class="card">
             <div class="big">Match Log</div>
-            <div class="muted">Tất cả trận đã lưu (debug).</div>
+            <div class="muted">Debug — tất cả trận đã lưu.</div>
             <div class="divider"></div>
             <div id="logList" class="muted"></div>
         </div>
@@ -281,15 +277,12 @@
 
     <script type="module">
         import { load } from "./js/app_state.js";
-        import { avatarEmoji, playerName } from "./js/ui_shared.js";
+        import { playerName } from "./js/ui_shared.js";
 
         const state = load();
-        if (!state?.tournament) {
-            location.href = "./index.html";
-        }
+        if (!state?.tournament) location.href = "./index.html";
         const t = state.tournament;
 
-        /* ===== TEAMS MAP (id -> {name, logo}) ===== */
         const TEAMS = [
             { id: "real-madrid", name: "Real Madrid", u: "logos/real-madrid.png" },
             { id: "barcelona", name: "FC Barcelona", u: "logos/barcelona.png" },
@@ -311,21 +304,19 @@
             { id: "england", name: "England", u: "logos/england.png" },
             { id: "portugal", name: "Portugal", u: "logos/portugal.png" },
             { id: "germany", name: "Germany", u: "logos/germany.png" },
-            { id: "inter", name: "Inter", u: "logos/inter.png" },
+            { id: "inter", name: "Inter", u: "logos/inter.png" }
         ];
         const teamMap = new Map(TEAMS.map(x => [x.id, x]));
 
-        function teamLogo(teamId) {
-            if (!teamId) return "";
-            return teamMap.get(teamId)?.u || "";
-        }
-        function teamName(teamId) {
-            if (!teamId) return "TBD";
-            return teamMap.get(teamId)?.name || teamId;
-        }
-
-        /* ===== Logs helpers ===== */
         const logs = Array.isArray(t.log) ? t.log : [];
+
+        function teamLogo(teamId) { return teamId ? (teamMap.get(teamId)?.u || "") : ""; }
+        function teamName(teamId) { return teamId ? (teamMap.get(teamId)?.name || teamId) : "TBD"; }
+        function safeScore(x) {
+            if (x === null || x === undefined) return "—";
+            const n = Number(x);
+            return Number.isFinite(n) ? String(n) : "—";
+        }
 
         function lastLog(stage) {
             const arr = logs.filter(x => x.stage === stage);
@@ -339,99 +330,86 @@
             return arr;
         }
 
-        function safeScore(x) {
-            if (x === null || x === undefined) return "—";
-            const n = Number(x);
-            return Number.isFinite(n) ? String(n) : "—";
-        }
-
         function rowHTML({ pid, teamId, score, isWinner }) {
-            const p = (pid !== null && pid !== undefined) ? t.players[pid] : null;
-            const pLabel = p ? `${avatarEmoji(p.avatarKey)} ${p.name}` : "TBD";
+            const pLabel = (pid !== null && pid !== undefined) ? playerName(t, pid) : "TBD";
             const tn = teamName(teamId);
             const logo = teamLogo(teamId);
-
             return `
-    <div class="teamRow ${isWinner ? "winner" : ""}">
-      <div class="left">
-        <img class="logo" src="${logo}" alt="">
-        <div style="min-width:0">
-          <div class="name">${pLabel}</div>
-          <div class="muted" style="font-size:12px">${tn}</div>
+      <div class="teamRow ${isWinner ? "winner" : ""}">
+        <div class="left">
+          <img class="logo" src="${logo}" alt="">
+          <div style="min-width:0">
+            <div class="name">${pLabel}</div>
+            <div class="muted" style="font-size:12px">${tn}</div>
+          </div>
         </div>
+        <div class="score">${safeScore(score)}</div>
       </div>
-      <div class="score">${safeScore(score)}</div>
-    </div>
-  `;
+    `;
+        }
+
+        function svgLinesHTML() {
+            const svg1 = `
+      <div class="lines">
+        <svg viewBox="0 0 64 380" preserveAspectRatio="none">
+          <path d="M 0 95 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
+          <path d="M 0 285 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+    `;
+            const svg2 = `
+      <div class="lines">
+        <svg viewBox="0 0 64 380" preserveAspectRatio="none">
+          <path d="M 0 190 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+    `;
+            return { svg1, svg2 };
         }
 
         function buildBracketData() {
             const po1 = t.playoff1;
             const po1Log = lastLog("playoff1");
-            const po1ScoreA = po1?.score?.a ?? po1Log?.aScore ?? null;
-            const po1ScoreB = po1?.score?.b ?? po1Log?.bScore ?? null;
-            const po1TeamA = po1?.teams?.a ?? po1Log?.aTeam ?? null;
-            const po1TeamB = po1?.teams?.b ?? po1Log?.bTeam ?? null;
-            const po1WinnerId = po1?.winnerId ?? null;
-
             const po2 = t.playoff2;
             const po2Log = lastLog("playoff2");
-            const po2ScoreA = po2?.score?.a ?? po2Log?.aScore ?? null;
-            const po2ScoreB = po2?.score?.b ?? po2Log?.bScore ?? null;
-            const po2TeamA = po2?.teams?.a ?? po2Log?.aTeam ?? null;
-            const po2TeamB = po2?.teams?.b ?? po2Log?.bTeam ?? null;
-            const po2WinnerId = po2?.winnerId ?? null;
 
-            const finalGames = logsByStage("final");
-            const champId = t.championId ?? null;
+            const finalGames = logsByStage("final").slice(0, 3);
 
             return {
                 po1: {
                     aId: po1?.aId ?? null,
                     bId: po1?.bId ?? null,
-                    aTeam: po1TeamA, bTeam: po1TeamB,
-                    aScore: po1ScoreA, bScore: po1ScoreB,
-                    winnerId: po1WinnerId
+                    aTeam: po1?.teams?.a ?? po1Log?.aTeam ?? null,
+                    bTeam: po1?.teams?.b ?? po1Log?.bTeam ?? null,
+                    aScore: po1?.score?.a ?? po1Log?.aScore ?? null,
+                    bScore: po1?.score?.b ?? po1Log?.bScore ?? null,
+                    winnerId: po1?.winnerId ?? null
                 },
                 po2: {
-                    aId: po2?.aId ?? (po2Log?.aId ?? null),
-                    bId: po2?.bId ?? (po2Log?.bId ?? null),
-                    aTeam: po2TeamA, bTeam: po2TeamB,
-                    aScore: po2ScoreA, bScore: po2ScoreB,
-                    winnerId: po2WinnerId
+                    aId: po2?.aId ?? po2Log?.aId ?? null,
+                    bId: po2?.bId ?? po2Log?.bId ?? null,
+                    aTeam: po2?.teams?.a ?? po2Log?.aTeam ?? null,
+                    bTeam: po2?.teams?.b ?? po2Log?.bTeam ?? null,
+                    aScore: po2?.score?.a ?? po2Log?.aScore ?? null,
+                    bScore: po2?.score?.b ?? po2Log?.bScore ?? null,
+                    winnerId: po2?.winnerId ?? null
                 },
                 final: {
                     aId: t.final?.p1Id ?? null,
                     bId: t.final?.p2Id ?? null,
-                    games: finalGames.slice(0, 3).map((g, i) => ({
-                        game: i + 1,
-                        aTeam: g.aTeam ?? null,
-                        bTeam: g.bTeam ?? null,
-                        aScore: g.aScore ?? null,
-                        bScore: g.bScore ?? null
-                    })),
-                    winnerId: champId
+                    games: [1, 2, 3].map(i => {
+                        const g = finalGames[i - 1];
+                        return {
+                            game: i,
+                            aTeam: g?.aTeam ?? null,
+                            bTeam: g?.bTeam ?? null,
+                            aScore: g?.aScore ?? null,
+                            bScore: g?.bScore ?? null
+                        };
+                    }),
+                    winnerId: t.championId ?? null
                 }
             };
-        }
-
-        function svgLinesHTML() {
-            const svg1 = `
-    <div class="lines">
-      <svg viewBox="0 0 64 380" preserveAspectRatio="none">
-        <path d="M 0 95 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
-        <path d="M 0 285 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
-      </svg>
-    </div>
-  `;
-            const svg2 = `
-    <div class="lines">
-      <svg viewBox="0 0 64 380" preserveAspectRatio="none">
-        <path d="M 0 190 H 28 V 190 H 64" stroke="#2a3248" stroke-width="2" fill="none"/>
-      </svg>
-    </div>
-  `;
-            return { svg1, svg2 };
         }
 
         function bracketHTML() {
@@ -442,104 +420,79 @@
             const po2Done = (d.po2.aScore !== null && d.po2.bScore !== null);
             const champDone = (d.final.winnerId !== null);
 
-            const g = d.final.games;
-            const gameBoxes = [1, 2, 3].map(i => {
-                const gi = g.find(x => x.game === i);
-                const aTeam = gi?.aTeam ?? null;
-                const bTeam = gi?.bTeam ?? null;
-                const aScore = gi?.aScore ?? null;
-                const bScore = gi?.bScore ?? null;
-
-                return `
+            const gameBoxes = d.final.games.map(g => `
       <div class="box" style="margin-top:12px">
         <div class="boxTitle">
-          <div><b>Final • Game ${i}</b></div>
-          <div class="badge">${(aScore !== null && bScore !== null) ? "Played" : "TBD"}</div>
+          <div><b>Final • Game ${g.game}</b></div>
+          <div class="badge">${(g.aScore !== null && g.bScore !== null) ? "Played" : "TBD"}</div>
         </div>
-        ${rowHTML({ pid: d.final.aId, teamId: aTeam, score: aScore, isWinner: (champDone && d.final.winnerId === d.final.aId) })}
-        ${rowHTML({ pid: d.final.bId, teamId: bTeam, score: bScore, isWinner: (champDone && d.final.winnerId === d.final.bId) })}
+        ${rowHTML({ pid: d.final.aId, teamId: g.aTeam, score: g.aScore, isWinner: (champDone && d.final.winnerId === d.final.aId) })}
+        ${rowHTML({ pid: d.final.bId, teamId: g.bTeam, score: g.bScore, isWinner: (champDone && d.final.winnerId === d.final.bId) })}
       </div>
-    `;
-            }).join("");
+    `).join("");
 
             const champLine = champDone
                 ? `<div class="note"><b>🏆 Champion:</b> ${playerName(t, d.final.winnerId)}</div>`
                 : `<div class="note muted">Champion: TBD</div>`;
 
             return `
-    <div class="bracket">
-      <div class="col">
-        <div class="box">
-          <div class="boxTitle">
-            <div><b>Playoff 1</b></div>
-            <div class="badge">${po1Done ? "Done" : "TBD"}</div>
+      <div class="bracket">
+        <div class="col">
+          <div class="box">
+            <div class="boxTitle">
+              <div><b>Playoff 1</b></div>
+              <div class="badge">${po1Done ? "Done" : "TBD"}</div>
+            </div>
+            ${rowHTML({ pid: d.po1.aId, teamId: d.po1.aTeam, score: d.po1.aScore, isWinner: (d.po1.winnerId === d.po1.aId) })}
+            ${rowHTML({ pid: d.po1.bId, teamId: d.po1.bTeam, score: d.po1.bScore, isWinner: (d.po1.winnerId === d.po1.bId) })}
           </div>
-          ${rowHTML({
-                pid: d.po1.aId, teamId: d.po1.aTeam, score: d.po1.aScore,
-                isWinner: (d.po1.winnerId !== null && d.po1.winnerId === d.po1.aId)
-            })}
-          ${rowHTML({
-                pid: d.po1.bId, teamId: d.po1.bTeam, score: d.po1.bScore,
-                isWinner: (d.po1.winnerId !== null && d.po1.winnerId === d.po1.bId)
-            })}
+
+          <div class="spacer"></div>
+
+          <div class="box">
+            <div class="boxTitle">
+              <div><b>Seed #2 (Waiting)</b></div>
+              <div class="badge">Auto</div>
+            </div>
+            <div class="muted">Người hạng 2 vào Playoff 2 đá với Winner Playoff 1.</div>
+          </div>
         </div>
 
-        <div class="spacer"></div>
+        ${svg1}
 
-        <div class="box">
-          <div class="boxTitle">
-            <div><b>Seed #2 (Waiting)</b></div>
-            <div class="badge">Auto</div>
+        <div class="col">
+          <div class="box" style="margin-top:84px">
+            <div class="boxTitle">
+              <div><b>Playoff 2</b></div>
+              <div class="badge">${po2Done ? "Done" : "TBD"}</div>
+            </div>
+            ${rowHTML({ pid: d.po2.aId, teamId: d.po2.aTeam, score: d.po2.aScore, isWinner: (d.po2.winnerId === d.po2.aId) })}
+            ${rowHTML({ pid: d.po2.bId, teamId: d.po2.bTeam, score: d.po2.bScore, isWinner: (d.po2.winnerId === d.po2.bId) })}
           </div>
-          <div class="muted">
-            Người hạng 2 sẽ vào Playoff 2 đá với Winner Playoff 1.
+        </div>
+
+        ${svg2}
+
+        <div class="col">
+          <div class="box" style="margin-top:84px">
+            <div class="boxTitle">
+              <div><b>Final (BO3)</b></div>
+              <div class="badge">${champDone ? "Completed" : "In Progress"}</div>
+            </div>
+            <div class="muted">
+              ${d.final.aId !== null ? playerName(t, d.final.aId) : "TBD"} vs ${d.final.bId !== null ? playerName(t, d.final.bId) : "TBD"}
+            </div>
           </div>
+          ${gameBoxes}
+          ${champLine}
         </div>
       </div>
-
-      ${svg1}
-
-      <div class="col">
-        <div class="box" style="margin-top:84px">
-          <div class="boxTitle">
-            <div><b>Playoff 2</b></div>
-            <div class="badge">${po2Done ? "Done" : "TBD"}</div>
-          </div>
-          ${rowHTML({
-                pid: d.po2.aId, teamId: d.po2.aTeam, score: d.po2.aScore,
-                isWinner: (d.po2.winnerId !== null && d.po2.winnerId === d.po2.aId)
-            })}
-          ${rowHTML({
-                pid: d.po2.bId, teamId: d.po2.bTeam, score: d.po2.bScore,
-                isWinner: (d.po2.winnerId !== null && d.po2.winnerId === d.po2.bId)
-            })}
-        </div>
-      </div>
-
-      ${svg2}
-
-      <div class="col">
-        <div class="box" style="margin-top:84px">
-          <div class="boxTitle">
-            <div><b>Final (BO3)</b></div>
-            <div class="badge">${champDone ? "Completed" : "In Progress"}</div>
-          </div>
-          <div class="muted">
-            ${d.final.aId !== null ? playerName(t, d.final.aId) : "TBD"} vs ${d.final.bId !== null ? playerName(t, d.final.bId) : "TBD"}
-          </div>
-        </div>
-
-        ${gameBoxes}
-
-        ${champLine}
-      </div>
-    </div>
-  `;
+    `;
         }
 
-        /* ===== Render bracket + log ===== */
         document.getElementById("bracketRoot").innerHTML = bracketHTML();
 
+        // log list
         function logLine(x) {
             const when = x.ts ? new Date(x.ts).toLocaleString() : "";
             const a = (x.aId !== null && x.aId !== undefined) ? playerName(t, x.aId) : "—";
@@ -551,21 +504,18 @@
         }
         document.getElementById("logList").innerHTML = logs.length ? logs.map(logLine).join("") : "<div class='muted'>(no logs yet)</div>";
 
-        /* ===== Zoom + Fit + Drag-to-scroll (Cách 1) ===== */
+        // zoom + fit + drag
         const viewport = document.getElementById("viewport");
         const root = document.getElementById("bracketRoot");
         const zoomLabel = document.getElementById("zoomLabel");
-
         let scale = 1;
 
         function applyScale() {
             root.style.transform = `scale(${scale})`;
             zoomLabel.textContent = `Zoom: ${Math.round(scale * 100)}%`;
-
             const h = root.scrollHeight * scale;
             viewport.style.minHeight = Math.max(360, Math.min(h + 20, 720)) + "px";
         }
-
         function fitToScreen() {
             const vw = viewport.clientWidth - 20;
             const bw = root.scrollWidth;
@@ -577,17 +527,10 @@
             }
         }
 
-        document.getElementById("btnZoomIn").onclick = () => {
-            scale = Math.min(1.25, scale + 0.1);
-            applyScale();
-        };
-        document.getElementById("btnZoomOut").onclick = () => {
-            scale = Math.max(0.55, scale - 0.1);
-            applyScale();
-        };
+        document.getElementById("btnZoomIn").onclick = () => { scale = Math.min(1.25, scale + 0.1); applyScale(); };
+        document.getElementById("btnZoomOut").onclick = () => { scale = Math.max(0.55, scale - 0.1); applyScale(); };
         document.getElementById("btnFit").onclick = fitToScreen;
 
-        // Drag-to-scroll
         let isDown = false, startX = 0, startY = 0, sl = 0, st = 0;
         viewport.addEventListener("pointerdown", (e) => {
             isDown = true;
@@ -597,15 +540,12 @@
         });
         viewport.addEventListener("pointermove", (e) => {
             if (!isDown) return;
-            const dx = e.pageX - startX;
-            const dy = e.pageY - startY;
-            viewport.scrollLeft = sl - dx;
-            viewport.scrollTop = st - dy;
+            viewport.scrollLeft = sl - (e.pageX - startX);
+            viewport.scrollTop = st - (e.pageY - startY);
         });
         viewport.addEventListener("pointerup", () => { isDown = false; });
         viewport.addEventListener("pointercancel", () => { isDown = false; });
 
-        // init
         applyScale();
         setTimeout(fitToScreen, 0);
         window.addEventListener("resize", () => setTimeout(fitToScreen, 50));

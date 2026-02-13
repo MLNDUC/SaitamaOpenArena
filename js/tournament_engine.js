@@ -1,15 +1,28 @@
+function m(round, aId, bId) {
+    return {
+        round,
+        aId,
+        bId,
+        teams: { a: null, b: null },   // teamId string
+        score: { a: null, b: null }    // numbers or null
+    };
+}
+
+function blankStats() {
+    return { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
+}
+
 export function createNewTournament(players) {
-    // players: [{name, avatarKey}]
+    // players: [{name}]
     const t = {
         meta: { name: "FC26 Saitama Open Arena", createdAt: Date.now() },
         players: players.map((p, idx) => ({
             id: idx,
             name: p.name,
-            avatarKey: p.avatarKey,
             stats: blankStats()
         })),
 
-        // 6 trận vòng bảng (3 lượt)
+        // 6 matches group (3 rounds)
         group: {
             matches: [
                 m(1, 0, 3), m(1, 1, 2),
@@ -20,33 +33,20 @@ export function createNewTournament(players) {
         },
 
         playoff1: null, // {aId,bId, teams:{a,b}, score:{a,b}, winnerId}
-        playoff2: null, // {aId,bId,...}
+        playoff2: null, // {aId,bId, teams:{a,b}, score:{a,b}, winnerId, seed2Id}
         final: { p1Id: null, p2Id: null, matches: [], winnerId: null }, // BO3
         championId: null,
 
-        // history log for bracket page
-        log: [] // entries: {stage, label, aId,bId, aTeam,bTeam, aScore,bScore, ts}
+        // log entries: {stage,label,aId,bId,aTeam,bTeam,aScore,bScore,ts}
+        log: []
     };
 
     recalcStandings(t);
     return t;
 }
 
-function m(round, aId, bId) {
-    return {
-        round,
-        aId,
-        bId,
-        teams: { a: null, b: null },   // string teamId
-        score: { a: null, b: null }    // numbers or null
-    };
-}
-function blankStats() {
-    return { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
-}
-
 export function recalcStandings(t) {
-    t.players.forEach(p => p.stats = blankStats());
+    t.players.forEach(p => (p.stats = blankStats()));
 
     for (const match of t.group.matches) {
         const { aId, bId, score } = match;
@@ -64,7 +64,7 @@ export function recalcStandings(t) {
         else { A.stats.draw++; B.stats.draw++; A.stats.pts += 1; B.stats.pts += 1; }
     }
 
-    t.players.forEach(p => p.stats.gd = p.stats.gf - p.stats.ga);
+    t.players.forEach(p => (p.stats.gd = p.stats.gf - p.stats.ga));
 
     t.group.standings = [...t.players].sort((x, y) =>
         (y.stats.pts - x.stats.pts) ||
@@ -72,7 +72,14 @@ export function recalcStandings(t) {
         (y.stats.gf - x.stats.gf) ||
         (x.id - y.id)
     );
+
     return t.group.standings;
+}
+
+export function setGroupMatchTeams(t, matchIndex, aTeam, bTeam) {
+    const match = t.group.matches[matchIndex];
+    match.teams.a = aTeam;
+    match.teams.b = bTeam;
 }
 
 export function setGroupMatchResult(t, matchIndex, aScore, bScore) {
@@ -82,14 +89,8 @@ export function setGroupMatchResult(t, matchIndex, aScore, bScore) {
     recalcStandings(t);
 }
 
-export function setGroupMatchTeams(t, matchIndex, aTeam, bTeam) {
-    const match = t.group.matches[matchIndex];
-    match.teams.a = aTeam;
-    match.teams.b = bTeam;
-}
-
 export function groupCompleted(t) {
-    return t.group.matches.every(m => m.score.a !== null && m.score.b !== null);
+    return t.group.matches.every(mm => mm.score.a !== null && mm.score.b !== null);
 }
 
 export function ensurePlayoffsGenerated(t) {
@@ -108,13 +109,15 @@ export function ensurePlayoffsGenerated(t) {
         score: { a: null, b: null },
         winnerId: null
     };
+
     t.playoff2 = {
-        aId: null, bId: null, // winner P1 vs #2
+        aId: null, bId: null,
         teams: { a: null, b: null },
         score: { a: null, b: null },
         winnerId: null,
         seed2Id: p2
     };
+
     t.final = { p1Id: p1, p2Id: null, matches: [], winnerId: null };
 }
 
@@ -126,6 +129,7 @@ export function setPlayoff1Result(t, aScore, bScore) {
 
     p.winnerId = (p.score.a > p.score.b) ? p.aId : p.bId;
 
+    // Playoff2: winner vs seed2
     t.playoff2.aId = p.winnerId;
     t.playoff2.bId = t.playoff2.seed2Id;
 }
@@ -137,11 +141,14 @@ export function setPlayoff2Result(t, aScore, bScore) {
     if (p.score.a === null || p.score.b === null) return;
 
     p.winnerId = (p.score.a > p.score.b) ? p.aId : p.bId;
+
+    // final challenger
     t.final.p2Id = p.winnerId;
 }
 
 export function addFinalGame(t, p1Score, p2Score) {
     if (t.final.winnerId) return;
+    if (t.final.matches.length >= 3) return; // hard cap BO3
 
     const a = toIntOrNull(p1Score);
     const b = toIntOrNull(p2Score);
@@ -154,6 +161,7 @@ export function addFinalGame(t, p1Score, p2Score) {
         if (g.a > g.b) p1Wins++;
         else if (g.b > g.a) p2Wins++;
     }
+
     if (p1Wins >= 2) {
         t.final.winnerId = t.final.p1Id;
         t.championId = t.final.p1Id;
@@ -164,30 +172,29 @@ export function addFinalGame(t, p1Score, p2Score) {
 }
 
 export function currentStage(t) {
-    const idx = t.group.matches.findIndex(m => m.score.a === null || m.score.b === null);
+    // 1) next group match
+    const idx = t.group.matches.findIndex(mm => mm.score.a === null || mm.score.b === null);
     if (idx !== -1) {
-        const m = t.group.matches[idx];
-        return { stage: "group", label: `Group R${m.round}`, aId: m.aId, bId: m.bId, matchIndex: idx };
+        const mm = t.group.matches[idx];
+        return { stage: "group", label: `Group R${mm.round}`, aId: mm.aId, bId: mm.bId, matchIndex: idx };
     }
 
     ensurePlayoffsGenerated(t);
 
+    // 2) playoff1
     if (t.playoff1 && (t.playoff1.score.a === null || t.playoff1.score.b === null)) {
         return { stage: "playoff1", label: "Playoff 1 (3rd vs 4th)", aId: t.playoff1.aId, bId: t.playoff1.bId };
     }
 
+    // 3) playoff2
     if (t.playoff2 && t.playoff2.aId !== null && (t.playoff2.score.a === null || t.playoff2.score.b === null)) {
         return { stage: "playoff2", label: "Playoff 2 (Winner vs 2nd)", aId: t.playoff2.aId, bId: t.playoff2.bId };
     }
 
-    // Final BO3
+    // 4) final BO3
     if (t.final && t.final.p2Id !== null && !t.final.winnerId) {
-        return {
-            stage: "final",
-            label: `Final BO3 (Game ${t.final.matches.length + 1})`,
-            aId: t.final.p1Id,
-            bId: t.final.p2Id
-        };
+        const nextGame = Math.min(t.final.matches.length + 1, 3);
+        return { stage: "final", label: `Final BO3 (Game ${nextGame})`, aId: t.final.p1Id, bId: t.final.p2Id };
     }
 
     return { stage: "done", label: "Tournament Completed", aId: null, bId: null };

@@ -5,8 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>FC26 Saitama Open Arena</title>
-    <meta name="apple-mobile-web-app-title" content="FC26 Saitama Open Arena">
-
+    <meta name="theme-color" content="#0b0f16">
     <link rel="manifest" href="./manifest.webmanifest">
 
     <style>
@@ -36,6 +35,16 @@
             text-decoration: none
         }
 
+        .pill {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            background: #0f1526;
+            border: 1px solid #2a3248;
+            border-radius: 999px;
+            padding: 8px 10px
+        }
+
         .card {
             background: #121826;
             border-radius: 14px;
@@ -54,7 +63,6 @@
             min-width: 260px
         }
 
-        /* ✅ iOS Safari: input < 16px => auto zoom */
         input,
         select,
         button {
@@ -65,11 +73,7 @@
             background: #0f1526;
             color: #e6ebf2;
             font-size: 16px;
-        }
-
-        input[type="number"] {
-            text-align: center;
-            font-size: 18px
+            /* ✅ prevent iOS zoom */
         }
 
         button {
@@ -86,14 +90,28 @@
             cursor: not-allowed
         }
 
-        .pill {
-            display: inline-flex;
-            gap: 8px;
-            align-items: center;
+        .big {
+            font-size: 18px;
+            font-weight: 1000
+        }
+
+        .muted {
+            color: #8a93a6;
+            font-size: 13px
+        }
+
+        .divider {
+            height: 1px;
+            background: #2a3248;
+            margin: 12px 0
+        }
+
+        .hint {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 12px;
             background: #0f1526;
-            border: 1px solid #2a3248;
-            border-radius: 999px;
-            padding: 8px 10px
+            border: 1px dashed #2a3248
         }
 
         .team {
@@ -112,34 +130,10 @@
             border: 1px solid #2a3248
         }
 
-        .big {
-            font-size: 18px;
-            font-weight: 1000
-        }
-
-        .muted {
-            color: #8a93a6;
-            font-size: 13px
-        }
-
         .grid2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px
-        }
-
-        .divider {
-            height: 1px;
-            background: #2a3248;
-            margin: 12px 0
-        }
-
-        .hint {
-            margin-top: 8px;
-            padding: 10px;
-            border-radius: 12px;
-            background: #0f1526;
-            border: 1px dashed #2a3248
         }
     </style>
 </head>
@@ -148,22 +142,17 @@
     <div class="wrap">
         <div class="top">
             <div class="pill"><b>FC26 Saitama Open Arena</b><span class="muted">Home</span></div>
-            <div class="pill">
-                <a href="./table.html">Table</a> · <a href="./bracket.html">Bracket</a>
-            </div>
+            <div class="pill"><a href="./table.html">Table</a> · <a href="./bracket.html">Bracket</a></div>
         </div>
 
         <div class="card" id="setupCard">
-            <div class="big">1) Setup 4 người chơi (preset avatar)</div>
+            <div class="big">1) Setup 4 người chơi (name only)</div>
             <div class="muted">Chỉ làm 1 lần mỗi giải. Có thể “Reset Tournament”.</div>
             <div class="row" id="setupInputs"></div>
             <div class="row">
                 <div class="col"><button id="btnCreate">Create New Tournament</button></div>
-                <div class="col">
-                    <button id="btnReset" style="background:linear-gradient(135deg,#ff7a7a,#ffb86b)">
-                        Reset Tournament
-                    </button>
-                </div>
+                <div class="col"><button id="btnReset" style="background:linear-gradient(135deg,#ff7a7a,#ffb86b)">Reset
+                        Tournament</button></div>
             </div>
         </div>
 
@@ -173,7 +162,11 @@
 
             <div class="hint">
                 <div class="muted">
-                    Mỗi người tự bấm random team cho mình. Khi cả 2 đã random xong mới được lưu tỉ số.
+                    Luật “đen tự chịu”: mỗi người tự bấm random team cho mình. Khi cả 2 đã random xong mới được lưu tỉ
+                    số.
+                </div>
+                <div class="muted" style="margin-top:6px">
+                    Playoff/Final: <b>không cho hòa</b> (nếu hòa thì đá pen rồi nhập kết quả thắng thua).
                 </div>
             </div>
 
@@ -181,11 +174,11 @@
 
             <div class="row">
                 <div class="col">
-                    <label class="muted">Player A</label>
+                    <label class="muted">Player A (đúng người của trận)</label>
                     <select id="selA"></select>
                 </div>
                 <div class="col">
-                    <label class="muted">Player B</label>
+                    <label class="muted">Player B (đúng người của trận)</label>
                     <select id="selB"></select>
                 </div>
             </div>
@@ -197,6 +190,8 @@
 
             <div class="row">
                 <div class="col"><button id="btnSaveMatch" disabled>Save Score & Advance</button></div>
+                <div class="col"><button id="btnReset2" style="background:linear-gradient(135deg,#ff7a7a,#ffb86b)">Reset
+                        Tournament</button></div>
             </div>
 
             <div class="row">
@@ -226,24 +221,20 @@
                     <input id="scoreB" type="number" min="0" inputmode="numeric" placeholder="0">
                 </div>
             </div>
-
-            <div class="muted" style="margin-top:10px">
-                Trang Home chỉ xử lý “trận hiện tại” theo tiến trình giải. Sửa toàn bộ lịch + standings ở trang
-                Table.
-            </div>
         </div>
     </div>
 
     <script type="module">
         import { load, save, clearAll } from "./js/app_state.js";
-        import { AVATARS, avatarEmoji, playerName } from "./js/ui_shared.js";
+        import { playerName } from "./js/ui_shared.js";
         import {
-            createNewTournament, currentStage, setGroupMatchTeams, setGroupMatchResult,
-            ensurePlayoffsGenerated, setPlayoff1Result, setPlayoff2Result, addFinalGame,
-            logMatch
+            createNewTournament, currentStage,
+            setGroupMatchTeams, setGroupMatchResult,
+            ensurePlayoffsGenerated, setPlayoff1Result, setPlayoff2Result,
+            addFinalGame, logMatch
         } from "./js/tournament_engine.js";
 
-        /* ===== TEAMS LOCAL (21) ===== */
+        // ===== TEAMS LOCAL (21) =====
         const TEAMS = [
             { id: "real-madrid", name: "Real Madrid", u: "logos/real-madrid.png" },
             { id: "barcelona", name: "FC Barcelona", u: "logos/barcelona.png" },
@@ -267,31 +258,39 @@
             { id: "germany", name: "Germany", u: "logos/germany.png" },
             { id: "inter", name: "Inter", u: "logos/inter.png" },
         ];
+        const teamById = (id) => TEAMS.find(t => t.id === id);
 
-        /* ===== Sounds ===== */
+        // ===== Sounds =====
         const tickSound = new Audio("sounds/tick.mp3");
-        tickSound.volume = 0.7; tickSound.preload = "auto";
+        tickSound.volume = 0.7;
+        tickSound.preload = "auto";
+
         const dongSound = new Audio("sounds/dong.mp3");
-        dongSound.volume = 0.85; dongSound.preload = "auto";
+        dongSound.volume = 0.85;
+        dongSound.preload = "auto";
+
         function playTick() { try { tickSound.currentTime = 0; tickSound.play(); } catch (e) { } }
         function playDong() { try { dongSound.currentTime = 0; dongSound.play(); } catch (e) { } }
 
-        /* ===== State ===== */
+        // ===== State =====
         let state = load();
         let tournament = state?.tournament ?? null;
 
-        /* ===== DOM ===== */
         const setupCard = document.getElementById("setupCard");
         const matchCard = document.getElementById("matchCard");
         const setupInputs = document.getElementById("setupInputs");
+
         const selA = document.getElementById("selA");
         const selB = document.getElementById("selB");
         const stageLabel = document.getElementById("stageLabel");
+
         const btnCreate = document.getElementById("btnCreate");
         const btnReset = document.getElementById("btnReset");
+        const btnReset2 = document.getElementById("btnReset2");
         const btnRandomA = document.getElementById("btnRandomA");
         const btnRandomB = document.getElementById("btnRandomB");
         const btnSaveMatch = document.getElementById("btnSaveMatch");
+
         const logoA = document.getElementById("logoA");
         const logoB = document.getElementById("logoB");
         const teamA = document.getElementById("teamA");
@@ -301,7 +300,6 @@
         const scoreA = document.getElementById("scoreA");
         const scoreB = document.getElementById("scoreB");
 
-        /* ===== Per match picked team ===== */
         let currentPicked = { aTeam: null, bTeam: null };
 
         function saveState() { save({ tournament }); }
@@ -322,46 +320,35 @@
                 const col = document.createElement("div");
                 col.className = "col";
                 col.innerHTML = `
-      <label class="muted">Player ${i + 1} Name</label>
-      <input id="pname_${i}" placeholder="Player ${i + 1}" value="">
-      <label class="muted" style="margin-top:8px;display:block">Avatar</label>
-      <select id="pava_${i}"></select>
-    `;
+        <label class="muted">Player ${i + 1} Name</label>
+        <input id="pname_${i}" placeholder="Player ${i + 1}" value="">
+      `;
                 setupInputs.appendChild(col);
-                const sel = col.querySelector(`#pava_${i}`);
-                AVATARS.forEach(a => {
-                    const opt = document.createElement("option");
-                    opt.value = a.key;
-                    opt.textContent = a.label;
-                    sel.appendChild(opt);
-                });
-            }
-        }
-
-        function teamById(id) { return TEAMS.find(t => t.id === id); }
-
-        function setTeamUI(side, tId, pId) {
-            const t = teamById(tId);
-            if (side === "A") {
-                logoA.src = t?.u || "";
-                teamA.textContent = t?.name || "—";
-                playerA.textContent = `${avatarEmoji(tournament.players[pId].avatarKey)} ${tournament.players[pId].name}`;
-            } else {
-                logoB.src = t?.u || "";
-                teamB.textContent = t?.name || "—";
-                playerB.textContent = `${avatarEmoji(tournament.players[pId].avatarKey)} ${tournament.players[pId].name}`;
             }
         }
 
         function fillPlayerSelect(select, allowedIds) {
             select.innerHTML = "";
             allowedIds.forEach(id => {
-                const p = tournament.players[id];
                 const opt = document.createElement("option");
                 opt.value = String(id);
-                opt.textContent = `${avatarEmoji(p.avatarKey)} ${p.name}`;
+                opt.textContent = tournament.players[id].name;
                 select.appendChild(opt);
             });
+        }
+
+        function setTeamUI(side, tId, pId) {
+            const t = teamById(tId);
+            const pName = tournament.players[pId].name;
+            if (side === "A") {
+                logoA.src = t?.u || "";
+                teamA.textContent = t?.name || "—";
+                playerA.textContent = pName;
+            } else {
+                logoB.src = t?.u || "";
+                teamB.textContent = t?.name || "—";
+                playerB.textContent = pName;
+            }
         }
 
         function getAssignedTeams(cur) {
@@ -377,31 +364,34 @@
                 const p = tournament.playoff2;
                 if (p?.teams?.a && p?.teams?.b) return { aTeam: p.teams.a, bTeam: p.teams.b };
             }
-            return null;
+            return null; // final per-game, from currentPicked only
         }
 
-        function randomOneTeam(excludeId = null) {
+        function randomOneTeam(excludeTeamId = null) {
             let t = TEAMS[(Math.random() * TEAMS.length) | 0];
-            while (excludeId && t.id === excludeId) t = TEAMS[(Math.random() * TEAMS.length) | 0];
+            while (excludeTeamId && t.id === excludeTeamId) {
+                t = TEAMS[(Math.random() * TEAMS.length) | 0];
+            }
             return t;
         }
 
-        /* ===== Spin effect (aggressive easing + suspense) ===== */
         async function spinWithSound(onFrame, onDone) {
+            // iOS/Chrome audio unlock
             await Promise.allSettled([
                 tickSound.play().then(() => tickSound.pause()),
-                dongSound.play().then(() => dongSound.pause())
+                dongSound.play().then(() => dongSound.pause()),
             ]).catch(() => { });
 
             const totalTime = 3300;
             const startDelay = 45;
             const endDelay = 700;
-            const suspenseHoldMs = 600;
+            const suspenseHoldMs = 650;
+
             const startTime = performance.now();
 
             function loop(now) {
                 const p = Math.min((now - startTime) / totalTime, 1);
-                const ease = p * p * p;
+                const ease = p * p * p; // gắt
                 const delay = startDelay + (endDelay - startDelay) * ease;
 
                 onFrame();
@@ -410,55 +400,71 @@
                 if (p < 1) {
                     setTimeout(() => requestAnimationFrame(loop), delay);
                 } else {
-                    setTimeout(() => { onDone(); playDong(); }, suspenseHoldMs);
+                    setTimeout(() => {
+                        onDone();
+                        playDong();
+                    }, suspenseHoldMs);
                 }
             }
             requestAnimationFrame(loop);
         }
 
         function maybeEnableSave() {
-            if (currentPicked.aTeam && currentPicked.bTeam) btnSaveMatch.disabled = false;
+            if (currentPicked.aTeam && currentPicked.bTeam) {
+                btnSaveMatch.disabled = false;
+            }
         }
 
         function renderCurrentMatch() {
             const cur = currentStage(tournament);
             stageLabel.textContent = cur.label;
 
+            // remove old restart button if exists
+            const oldRestart = document.getElementById("btnRestart");
+            if (oldRestart) oldRestart.remove();
+
             if (cur.stage === "done") {
-                selA.innerHTML = ""; selB.innerHTML = "";
-                btnRandomA.disabled = true; btnRandomB.disabled = true; btnSaveMatch.disabled = true;
-                teamA.textContent = "Tournament Completed"; teamB.textContent = "";
+                selA.innerHTML = "";
+                selB.innerHTML = "";
+                btnRandomA.disabled = true;
+                btnRandomB.disabled = true;
+                btnSaveMatch.disabled = true;
+
+                logoA.src = "";
+                logoB.src = "";
+                teamA.textContent = "Tournament Completed";
+                teamB.textContent = "";
+                scoreA.value = "";
+                scoreB.value = "";
+
                 playerA.textContent = tournament.championId !== null
                     ? `🏆 Champion: ${playerName(tournament, tournament.championId)}`
-                    : "";
+                    : "🏁 Completed";
                 playerB.textContent = "";
-                logoA.src = ""; logoB.src = "";
-                scoreA.value = ""; scoreB.value = "";
 
-                if (!document.getElementById("btnRestart")) {
-                    const restartBtn = document.createElement("button");
-                    restartBtn.id = "btnRestart";
-                    restartBtn.textContent = "Start New Tournament";
-                    restartBtn.style.marginTop = "20px";
-                    restartBtn.style.background = "linear-gradient(135deg,#ffcc00,#ff8800)";
-                    restartBtn.onclick = () => {
-                        if (confirm("Start new tournament?")) {
-                            localStorage.clear();
-                            location.reload();
-                        }
-                    };
-                    matchCard.appendChild(restartBtn);
-                }
+                // always show start new
+                const restartBtn = document.createElement("button");
+                restartBtn.id = "btnRestart";
+                restartBtn.textContent = "Start New Tournament";
+                restartBtn.style.marginTop = "12px";
+                restartBtn.style.background = "linear-gradient(135deg,#ffcc00,#ff8800)";
+                restartBtn.onclick = () => {
+                    if (!confirm("Start new tournament? (xóa toàn bộ dữ liệu giải)")) return;
+                    clearAll();
+                    location.reload();
+                };
+                matchCard.appendChild(restartBtn);
                 return;
             }
 
             fillPlayerSelect(selA, [cur.aId]);
             fillPlayerSelect(selB, [cur.bId]);
 
-            scoreA.value = ""; scoreB.value = "";
+            scoreA.value = "";
+            scoreB.value = "";
             btnSaveMatch.disabled = true;
-
             currentPicked = { aTeam: null, bTeam: null };
+
             btnRandomA.disabled = false;
             btnRandomB.disabled = false;
 
@@ -468,38 +474,44 @@
                 currentPicked.bTeam = assigned.bTeam;
                 setTeamUI("A", assigned.aTeam, cur.aId);
                 setTeamUI("B", assigned.bTeam, cur.bId);
+
                 btnRandomA.disabled = true;
                 btnRandomB.disabled = true;
                 btnSaveMatch.disabled = false;
                 return;
             }
 
+            // blank
             logoA.src = ""; logoB.src = "";
             teamA.textContent = "—"; teamB.textContent = "—";
-            playerA.textContent = `${avatarEmoji(tournament.players[cur.aId].avatarKey)} ${tournament.players[cur.aId].name}`;
-            playerB.textContent = `${avatarEmoji(tournament.players[cur.bId].avatarKey)} ${tournament.players[cur.bId].name}`;
+            playerA.textContent = tournament.players[cur.aId].name;
+            playerB.textContent = tournament.players[cur.bId].name;
         }
 
         btnRandomA.addEventListener("click", async () => {
             const cur = currentStage(tournament);
             if (cur.stage === "done") return;
+
             btnRandomA.disabled = true;
             btnSaveMatch.disabled = true;
 
             let lastA = null;
+
             await spinWithSound(
-                () => { const ta = randomOneTeam(currentPicked.bTeam); lastA = ta; setTeamUI("A", ta.id, cur.aId); },
+                () => {
+                    const ta = randomOneTeam(currentPicked.bTeam);
+                    lastA = ta;
+                    setTeamUI("A", ta.id, cur.aId);
+                },
                 () => {
                     currentPicked.aTeam = lastA.id;
 
-                    // Persist for group/playoffs (final per-game -> logged on save)
+                    // persist for group/playoffs only
                     if (cur.stage === "group") {
                         tournament.group.matches[cur.matchIndex].teams.a = currentPicked.aTeam;
                     } else if (cur.stage === "playoff1") {
-                        tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
                         tournament.playoff1.teams.a = currentPicked.aTeam;
                     } else if (cur.stage === "playoff2") {
-                        tournament.playoff2.teams = tournament.playoff2.teams || { a: null, b: null };
                         tournament.playoff2.teams.a = currentPicked.aTeam;
                     }
 
@@ -512,22 +524,26 @@
         btnRandomB.addEventListener("click", async () => {
             const cur = currentStage(tournament);
             if (cur.stage === "done") return;
+
             btnRandomB.disabled = true;
             btnSaveMatch.disabled = true;
 
             let lastB = null;
+
             await spinWithSound(
-                () => { const tb = randomOneTeam(currentPicked.aTeam); lastB = tb; setTeamUI("B", tb.id, cur.bId); },
+                () => {
+                    const tb = randomOneTeam(currentPicked.aTeam);
+                    lastB = tb;
+                    setTeamUI("B", tb.id, cur.bId);
+                },
                 () => {
                     currentPicked.bTeam = lastB.id;
 
                     if (cur.stage === "group") {
                         tournament.group.matches[cur.matchIndex].teams.b = currentPicked.bTeam;
                     } else if (cur.stage === "playoff1") {
-                        tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
                         tournament.playoff1.teams.b = currentPicked.bTeam;
                     } else if (cur.stage === "playoff2") {
-                        tournament.playoff2.teams = tournament.playoff2.teams || { a: null, b: null };
                         tournament.playoff2.teams.b = currentPicked.bTeam;
                     }
 
@@ -552,6 +568,13 @@
                 return;
             }
 
+            // no draw in playoffs/final
+            const mustDecide = (cur.stage === "playoff1" || cur.stage === "playoff2" || cur.stage === "final");
+            if (mustDecide && aS === bS) {
+                alert("Playoff/Final không cho hòa. Nếu hòa thì đá pen rồi nhập kết quả thắng thua.");
+                return;
+            }
+
             if (cur.stage === "group") {
                 setGroupMatchTeams(tournament, cur.matchIndex, currentPicked.aTeam, currentPicked.bTeam);
                 setGroupMatchResult(tournament, cur.matchIndex, aS, bS);
@@ -567,10 +590,10 @@
             }
 
             if (cur.stage === "playoff1") {
-                tournament.playoff1.teams = tournament.playoff1.teams || { a: null, b: null };
                 tournament.playoff1.teams.a = currentPicked.aTeam;
                 tournament.playoff1.teams.b = currentPicked.bTeam;
-                tournament.playoff1.score = { a: aS, b: bS };
+                tournament.playoff1.score.a = aS;
+                tournament.playoff1.score.b = bS;
 
                 logMatch(tournament, {
                     stage: "playoff1", label: cur.label,
@@ -583,10 +606,10 @@
             }
 
             if (cur.stage === "playoff2") {
-                tournament.playoff2.teams = tournament.playoff2.teams || { a: null, b: null };
                 tournament.playoff2.teams.a = currentPicked.aTeam;
                 tournament.playoff2.teams.b = currentPicked.bTeam;
-                tournament.playoff2.score = { a: aS, b: bS };
+                tournament.playoff2.score.a = aS;
+                tournament.playoff2.score.b = bS;
 
                 logMatch(tournament, {
                     stage: "playoff2", label: cur.label,
@@ -599,24 +622,9 @@
             }
 
             if (cur.stage === "final") {
-                // ✅ BO3 UX: win 2 => stop, no draw, no game4
-                if (tournament.final?.winnerId || tournament.championId !== null) {
-                    alert("Final đã kết thúc rồi.");
-                    return;
-                }
-                const played = tournament.final?.matches?.length || 0;
-                if (played >= 3) {
-                    alert("Final BO3 tối đa 3 game.");
-                    return;
-                }
-                if (aS === bS) {
-                    alert("Final BO3 không cho hòa.");
-                    return;
-                }
-
+                // add game
                 addFinalGame(tournament, aS, bS);
 
-                // log teams per game
                 logMatch(tournament, {
                     stage: "final", label: cur.label,
                     aId: cur.aId, bId: cur.bId,
@@ -624,9 +632,9 @@
                     aScore: aS, bScore: bS
                 });
 
-                // ✅ Notify winner immediately if decided
+                // if already got champion, announce once
                 if (tournament.championId !== null) {
-                    alert(`🏆 CHAMPION: ${playerName(tournament, tournament.championId)} !!!`);
+                    alert(`🏆 Champion: ${playerName(tournament, tournament.championId)} (BO3 thắng 2 game)`);
                 }
             }
 
@@ -634,36 +642,39 @@
             renderCurrentMatch();
         });
 
-        /* ===== Setup / Reset ===== */
+        function resetTournament() {
+            if (!confirm("Reset tournament? (xóa toàn bộ dữ liệu giải)")) return;
+            clearAll();
+            tournament = null;
+            showSetupUI();
+            renderSetupInputs();
+        }
+
+        btnReset.addEventListener("click", resetTournament);
+        btnReset2.addEventListener("click", resetTournament);
+
+        // Setup create
         renderSetupInputs();
 
         btnCreate.addEventListener("click", () => {
             const players = [];
             for (let i = 0; i < 4; i++) {
                 const name = document.getElementById(`pname_${i}`).value.trim() || `Player ${i + 1}`;
-                const avatarKey = document.getElementById(`pava_${i}`).value;
-                players.push({ name, avatarKey });
+                players.push({ name });
             }
             tournament = createNewTournament(players);
             saveState();
             showTournamentUI();
         });
 
-        btnReset.addEventListener("click", () => {
-            if (!confirm("Reset tournament? (xóa toàn bộ dữ liệu giải)")) return;
-            clearAll();
-            tournament = null;
-            showSetupUI();
-        });
+        // boot
+        if (tournament) showTournamentUI();
+        else showSetupUI();
 
-        /* ===== PWA register ===== */
+        // register SW
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("./sw.js").catch(() => { });
         }
-
-        /* ===== boot ===== */
-        if (tournament) showTournamentUI();
-        else showSetupUI();
     </script>
 </body>
 

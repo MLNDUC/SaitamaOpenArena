@@ -1,5 +1,6 @@
-const CACHE_NAME = "fc26-saitama-open-arena-prod-v2";
-const ASSETS = [
+const CACHE = "fc26-saitama-open-arena-v3";
+
+const CORE = [
     "./",
     "./index.html",
     "./table.html",
@@ -8,17 +9,16 @@ const ASSETS = [
     "./sw.js",
 
     "./js/app_state.js",
-    "./js/tournament_engine.js",
     "./js/ui_shared.js",
-
-    "./sounds/tick.mp3",
-    "./sounds/dong.mp3",
+    "./js/tournament_engine.js",
 
     "./icons/icon-180.png",
     "./icons/icon-192.png",
     "./icons/icon-512.png",
 
-    // logos
+    "./sounds/tick.mp3",
+    "./sounds/dong.mp3",
+
     "./logos/real-madrid.png",
     "./logos/barcelona.png",
     "./logos/psg.png",
@@ -42,51 +42,27 @@ const ASSETS = [
     "./logos/inter.png"
 ];
 
-// Install: cache core
-self.addEventListener("install", (event) => {
+self.addEventListener("install", (e) => {
+    e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)));
     self.skipWaiting();
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-    );
 });
 
-// Activate: delete old caches
-self.addEventListener("activate", (event) => {
-    event.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(keys.map(k => (k !== CACHE_NAME ? caches.delete(k) : null)))
+self.addEventListener("activate", (e) => {
+    e.waitUntil(
+        caches.keys().then((keys) =>
+            Promise.all(keys.map((k) => (k !== CACHE ? caches.delete(k) : null)))
         )
     );
     self.clients.claim();
 });
 
-// Fetch
-self.addEventListener("fetch", (event) => {
-    const req = event.request;
+self.addEventListener("fetch", (e) => {
+    const url = new URL(e.request.url);
 
-    // HTML navigation => network-first (avoid stale HTML / JS references)
-    if (req.mode === "navigate") {
-        event.respondWith(
-            fetch(req)
-                .then(res => {
-                    const copy = res.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
-                    return res;
-                })
-                .catch(() => caches.match(req))
-        );
-        return;
-    }
+    // ✅ prevent chrome-extension / devtools scheme errors
+    if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
-    // Others => cache-first
-    event.respondWith(
-        caches.match(req).then(cached => {
-            if (cached) return cached;
-            return fetch(req).then(res => {
-                const copy = res.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
-                return res;
-            });
-        })
+    e.respondWith(
+        caches.match(e.request).then((r) => r || fetch(e.request))
     );
 });
